@@ -50,7 +50,12 @@ namespace QualitySmash
             {
                 var menu = Game1.activeClickableMenu as MenuWithInventory;
                 if (menu is ItemGrabMenu grabMenu)
+                {
+                    // Exclude mini shipping bin, shipping bin, fishing chests, etc
+                    if (grabMenu.ItemsToGrabMenu.capacity <= 9 || grabMenu.source == 2 || grabMenu.source == 3)
+                        return null;
                     return grabMenu;
+                }
             }
             return null;
         }

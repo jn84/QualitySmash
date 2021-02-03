@@ -19,13 +19,19 @@ namespace QualitySmash
         private readonly Texture2D imageQuality;
         private readonly ModConfig config;
 
+        private enum SmashType
+        {
+            Color,
+            Quality
+        }
+
         /// <summary>
         /// Initializes stuff for the mod.
         /// </summary>
-        /// <param name="modEntry"></param>
-        /// <param name="config"></param>
-        /// <param name="imageColor"></param>
-        /// <param name="imageQuality"></param>
+        /// <param name="modEntry">The ModEntry</param>
+        /// <param name="config">The mods config</param>
+        /// <param name="imageColor">Button texture for the color smash button</param>
+        /// <param name="imageQuality">Button texture for the quality smash button</param>
         public QualitySmashHandler(ModEntry modEntry, ModConfig config, Texture2D imageColor, Texture2D imageQuality)
         {
             this.modEntry = modEntry;
@@ -43,7 +49,6 @@ namespace QualitySmash
             };
         }
 
-        // TODO: Figure out where the buttons go
         private void UpdateButtonPositions()
         {
             var menu = Game1.activeClickableMenu;
@@ -124,19 +129,17 @@ namespace QualitySmash
             if (buttonColor.containsPoint((int) screenPixels.X, (int) screenPixels.Y))
             {
                 Game1.playSound("clubhit");
-                DoColorSmash(menu);
+                DoSmash(menu, SmashType.Color);
             }
 
             if (buttonQuality.containsPoint((int)screenPixels.X, (int)screenPixels.Y))
             {
                 Game1.playSound("clubhit");
-                DoQualitySmash(menu);
+                DoSmash(menu, SmashType.Quality);
             }
         }
 
-
-        //TODO: Need the container context
-        private void DoColorSmash(ItemGrabMenu menu)
+        private void DoSmash(ItemGrabMenu menu, SmashType smashType)
         {
             var areItemsChanged = false;
 
@@ -144,19 +147,101 @@ namespace QualitySmash
 
             var itemsProcessed = new List<Item>();
 
-            modEntry.Monitor.Log(containerInventory.Count.ToString(), LogLevel.Info);
             for (var i = 0; i < containerInventory.Count; i++)
             {
-                if (containerInventory[i] == null)
+                if (containerInventory[i] == null || !(containerInventory[i] is StardewValley.Object))
+                    continue;
+                if (smashType == SmashType.Color)
+                {
+                    if (!(containerInventory[i] is ColoredObject c) ||
+                        c.Category != -80 ||
+                        config.IgnoreItemsColor.Contains(containerInventory[i].ParentSheetIndex))
+                        continue;
+
+                    areItemsChanged = true;
+
+                    c.color.Value = default;
+
+                    itemsProcessed.Add(containerInventory[i]);
+
+                    containerInventory.RemoveAt(i);
+                    i--;
+                }
+                else if (smashType == SmashType.Quality)
+                {
+                    if ((containerInventory[i] as StardewValley.Object)?.Quality == 0) continue;
+
+                    if (config.IgnoreItemsQuality.Contains(containerInventory[i].ParentSheetIndex) ||
+                        config.IgnoreItemsCategory.Contains(containerInventory[i].Category))
+                        continue;
+
+                    if (!config.IgnoreIridiumItemExceptions.Contains(containerInventory[i].ParentSheetIndex) &&
+                        !config.IgnoreIridiumCategoryExceptions.Contains(containerInventory[i].Category))
+                        if (config.IgnoreIridium && (containerInventory[i] as StardewValley.Object)?.Quality == 4) continue;
+
+                    if (config.IgnoreGold && (containerInventory[i] as StardewValley.Object)?.Quality == 2) continue;
+
+                    if (config.IgnoreSilver && (containerInventory[i] as StardewValley.Object)?.Quality == 1) continue;
+
+                    // Filtering complete 
+
+                    areItemsChanged = true;
+
+                    if (containerInventory[i] is StardewValley.Object o)
+                        o.Quality = 0;
+
+                    itemsProcessed.Add(containerInventory[i]);
+
+                    containerInventory.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            if (!areItemsChanged) return;
+
+            // There's probably a simpler way to do this built into the game, but I don't see it.
+            // Prime the container with some of each item
+            AddSomeOfEach(menu, itemsProcessed);
+            
+            // Use a modified version of game's quick stack code to add the rest
+            FillOutStacks(menu, itemsProcessed);
+        }
+
+        private void DoQualitySmash(ItemGrabMenu menu)
+        {
+
+            var areItemsChanged = false;
+
+            var containerInventory = menu.ItemsToGrabMenu.actualInventory;
+
+            var itemsProcessed = new List<Item>();
+
+            for (var i = 0; i < containerInventory.Count; i++)
+            {
+                if (containerInventory[i] == null || !(containerInventory[i] is StardewValley.Object))
+                    continue;
+
+                // Apply builtin and config filters
+                if ((containerInventory[i] as StardewValley.Object)?.Quality == 0) continue;
+
+                if (config.IgnoreItemsQuality.Contains(containerInventory[i].ParentSheetIndex) ||
+                    config.IgnoreItemsCategory.Contains(containerInventory[i].Category))
                     continue;
                 
+                if (!config.IgnoreIridiumItemExceptions.Contains(containerInventory[i].ParentSheetIndex) &&
+                    !config.IgnoreIridiumCategoryExceptions.Contains(containerInventory[i].Category))
+                    if (config.IgnoreIridium && (containerInventory[i] as StardewValley.Object)?.Quality == 4) continue;
 
-                // If not flower
-                if (!(containerInventory[i] is ColoredObject c) || c.Category != -80) continue;
+                if (config.IgnoreGold && (containerInventory[i] as StardewValley.Object)?.Quality == 2) continue;
+
+                if (config.IgnoreSilver && (containerInventory[i] as StardewValley.Object)?.Quality == 1) continue;
+
+                // Filtering complete 
 
                 areItemsChanged = true;
-                
-                c.color.Value = default;
+
+                if (containerInventory[i] is StardewValley.Object o)
+                    o.Quality = 0;
 
                 itemsProcessed.Add(containerInventory[i]);
 
@@ -168,64 +253,7 @@ namespace QualitySmash
 
             AddSomeOfEach(menu, itemsProcessed);
 
-            RestackItems(menu, itemsProcessed);
-        }
-
-        private void DoQualitySmash(ItemGrabMenu menu)
-        {
-
-            var areItemsChanged = false;
-
-            var inv = menu.ItemsToGrabMenu.actualInventory;
-
-            var itemsProcessed = new List<Item>();
-
-            modEntry.Monitor.Log(inv.Count.ToString(), LogLevel.Info);
-            for (var i = 0; i < inv.Count; i++)
-            {
-                if (inv[i] == null || !(inv[i] is StardewValley.Object))
-                {
-                    modEntry.Monitor.Log("index: " + i + " is null or is not SDV Object", LogLevel.Info);
-                    continue;
-                }
-
-                modEntry.Monitor.Log(inv[i].DisplayName + " " + (inv[i] as StardewValley.Object)?.Quality + " " + inv[i].Stack, LogLevel.Info);
-
-                // Apply builtin and config filters
-
-                if ((inv[i] as StardewValley.Object)?.Quality == 0) continue;
-
-                if (config.IgnoreItemsQuality.Contains(inv[i].ParentSheetIndex) ||
-                    config.IgnoreItemsCategory.Contains(inv[i].Category))
-                    continue;
-                
-                if (!config.IgnoreIridiumItemExceptions.Contains(inv[i].ParentSheetIndex) &&
-                    !config.IgnoreIridiumCategoryExceptions.Contains(inv[i].Category))
-                    if (config.IgnoreIridium && (inv[i] as StardewValley.Object)?.Quality == 4) continue;
-
-                if (config.IgnoreGold && (inv[i] as StardewValley.Object)?.Quality == 2) continue;
-
-                if (config.IgnoreSilver && (inv[i] as StardewValley.Object)?.Quality == 1) continue;
-
-                // Filtering complete, 
-
-                areItemsChanged = true;
-
-
-                if (inv[i] is StardewValley.Object o)
-                    o.Quality = 0;
-
-                itemsProcessed.Add(inv[i]);
-
-                inv.RemoveAt(i);
-                i--;
-            }
-
-            if (!areItemsChanged) return;
-
-            AddSomeOfEach(menu, itemsProcessed);
-
-            RestackItems(menu, itemsProcessed);
+            FillOutStacks(menu, itemsProcessed);
         }
 
         /// <summary>
@@ -233,7 +261,7 @@ namespace QualitySmash
         /// </summary>
         /// <param name="menu">The active ItemGrabMenu (Chest, Fridge, etc.)</param>
         /// <param name="itemsToProcess">This list of items that were modified by the Smash methods</param>
-        private void RestackItems(ItemGrabMenu menu, IList<Item> itemsToProcess)
+        private void FillOutStacks(ItemGrabMenu menu, IList<Item> itemsToProcess)
         {
             var containerInventory = menu.ItemsToGrabMenu.actualInventory;
 
@@ -315,7 +343,7 @@ namespace QualitySmash
         }
 
         /// <summary>
-        /// This method is to "prime" the container with items so that RestackItems (FillOutStacks) will work
+        /// This method is to "prime" the container with items so that FillOutStacks will work
         /// </summary>
         /// <param name="menu">The active ItemGrabMenu (Chest, Fridge, etc.)</param>
         /// <param name="itemsToProcess">This list of items that were modified by the Smash methods</param>
@@ -337,24 +365,20 @@ namespace QualitySmash
                 if (itemsToProcess[i] == null || itemsToProcess[i].maximumStackSize() <= 1) 
                     continue;
 
-                modEntry.Monitor.Log("Processing item: " + itemsToProcess[i].DisplayName + " " + (itemsToProcess[i] as Object)?.Quality, LogLevel.Info);
-
                 for (var j = 0; j < containerInventory.Count; j++)
                 {
+                    // Reminder to myself to not change this
                     // This is a nested 'if' because otherwise in an edge case where the last item in a chest
                     // is not stackable, no items will be added since the code does not continue on to "if (j + 1 == containerInventory.Count)"
                     if (containerInventory[j] != null && containerInventory[j].maximumStackSize() > 1)
-                    {
                         // Found a stackable match, process the next item
                         if (containerInventory[j].canStackWith(itemsToProcess[i]))
                             break;
-                    }
 
-                    // Reached the end, and no stackable match was found, so add the item
+                    // Reached the end, and no stackable match was found, so add the item to the container
                     if (j + 1 == containerInventory.Count)
                     {
                         containerInventory.Add(itemsToProcess[i]);
-                        modEntry.Monitor.Log("Chest does not contain " + itemsToProcess[i].DisplayName + " " + (itemsToProcess[i] as Object)?.Quality, LogLevel.Info);
                         itemsToProcess[i] = null;
                         break;
                     }

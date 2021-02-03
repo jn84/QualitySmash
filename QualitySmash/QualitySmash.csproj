@@ -80,7 +80,9 @@
   <ItemGroup>
     <Content Include="assets\buttonColor.png" />
     <Content Include="assets\buttonQuality.png" />
-    <Content Include="docs\Categories.txt" />
+    <Content Include="docs\Categories.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
