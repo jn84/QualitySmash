@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace QualitySmash
 {
-    class QualitySmashHandler
+    internal class QualitySmashHandler
     {
         private string hoverTextColor;
         private string hoverTextQuality;
