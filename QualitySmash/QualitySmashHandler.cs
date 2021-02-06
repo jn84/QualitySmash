@@ -52,9 +52,11 @@ namespace QualitySmash
         private void UpdateButtonPositions()
         {
             var menu = Game1.activeClickableMenu;
-            if (menu == null) return;
+            if (menu == null) 
+                return;
 
-            var length = 16 * Game1.pixelZoom;
+
+            const int length = 64;
             const int positionFromBottom = 3;
             const int gapSize = 16;
 
@@ -96,7 +98,6 @@ namespace QualitySmash
             if (menu != null)
             { 
                 buttonColor.tryHover((int)x, (int)y, 0.25f);
-
                 if (buttonColor.containsPoint((int)x, (int)y))
                 {
                     this.hoverTextColor = buttonColor.hoverText;
@@ -104,7 +105,6 @@ namespace QualitySmash
                 }
 
                 buttonQuality.tryHover((int)x, (int)y, 0.25f);
-
                 if (buttonQuality.containsPoint((int)x, (int)y))
                 {
                     this.hoverTextQuality = buttonQuality.hoverText;
@@ -116,7 +116,7 @@ namespace QualitySmash
 
         internal void HandleClick(ICursorPosition cursor)
         {
-            var screenPixels = cursor.ScreenPixels;
+            var scaledMousePos = new Point(Game1.getMouseX(true), Game1.getMouseY(true));
 
             ItemGrabMenu menu = null;
 
@@ -126,13 +126,13 @@ namespace QualitySmash
             if (menu == null)
                 return;
 
-            if (buttonColor.containsPoint((int) screenPixels.X, (int) screenPixels.Y))
+            if (buttonColor.containsPoint(scaledMousePos.X, scaledMousePos.Y))
             {
                 Game1.playSound("clubhit");
                 DoSmash(menu, SmashType.Color);
             }
 
-            if (buttonQuality.containsPoint((int)screenPixels.X, (int)screenPixels.Y))
+            if (buttonQuality.containsPoint(scaledMousePos.X, scaledMousePos.Y))
             {
                 Game1.playSound("clubhit");
                 DoSmash(menu, SmashType.Quality);
@@ -204,55 +204,6 @@ namespace QualitySmash
             AddSomeOfEach(menu, itemsProcessed);
             
             // Use a modified version of game's quick stack code to add the rest
-            FillOutStacks(menu, itemsProcessed);
-        }
-
-        private void DoQualitySmash(ItemGrabMenu menu)
-        {
-
-            var areItemsChanged = false;
-
-            var containerInventory = menu.ItemsToGrabMenu.actualInventory;
-
-            var itemsProcessed = new List<Item>();
-
-            for (var i = 0; i < containerInventory.Count; i++)
-            {
-                if (containerInventory[i] == null || !(containerInventory[i] is StardewValley.Object))
-                    continue;
-
-                // Apply builtin and config filters
-                if ((containerInventory[i] as StardewValley.Object)?.Quality == 0) continue;
-
-                if (config.IgnoreItemsQuality.Contains(containerInventory[i].ParentSheetIndex) ||
-                    config.IgnoreItemsCategory.Contains(containerInventory[i].Category))
-                    continue;
-                
-                if (!config.IgnoreIridiumItemExceptions.Contains(containerInventory[i].ParentSheetIndex) &&
-                    !config.IgnoreIridiumCategoryExceptions.Contains(containerInventory[i].Category))
-                    if (config.IgnoreIridium && (containerInventory[i] as StardewValley.Object)?.Quality == 4) continue;
-
-                if (config.IgnoreGold && (containerInventory[i] as StardewValley.Object)?.Quality == 2) continue;
-
-                if (config.IgnoreSilver && (containerInventory[i] as StardewValley.Object)?.Quality == 1) continue;
-
-                // Filtering complete 
-
-                areItemsChanged = true;
-
-                if (containerInventory[i] is StardewValley.Object o)
-                    o.Quality = 0;
-
-                itemsProcessed.Add(containerInventory[i]);
-
-                containerInventory.RemoveAt(i);
-                i--;
-            }
-
-            if (!areItemsChanged) return;
-
-            AddSomeOfEach(menu, itemsProcessed);
-
             FillOutStacks(menu, itemsProcessed);
         }
 
