@@ -8,6 +8,7 @@ using StardewValley.Objects;
 using System;
 using System.IO;
 using System.Reflection;
+using Microsoft.Xna.Framework;
 
 
 namespace QualitySmash
@@ -15,6 +16,7 @@ namespace QualitySmash
     public class ModEntry : Mod
     {
         private QualitySmashHandler handler;
+
         internal IModHelper helper;
 
         private ModConfig config;
@@ -63,10 +65,10 @@ namespace QualitySmash
         private void OnCursorMoved(object sender, CursorMovedEventArgs e)
         {
             if (!Context.IsWorldReady) return;
-            var x = (int)e.NewPosition.ScreenPixels.X;
-            var y = (int)e.NewPosition.ScreenPixels.Y;
 
-            handler.TryHover(x, y);
+            var scaledMousePos = new Point(Game1.getMouseX(true), Game1.getMouseY(true));
+            
+            handler.TryHover(scaledMousePos.X, scaledMousePos.Y);
         }
 
         /// <summary>
