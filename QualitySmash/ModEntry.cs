@@ -1,25 +1,18 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
-using StardewValley.Objects;
-using System;
-using System.IO;
-using System.Reflection;
-using Microsoft.Xna.Framework;
-
 
 namespace QualitySmash
 {
     public class ModEntry : Mod
     {
-        private QualitySmashHandler handler;
+        private QualitySmashHandler handlerUiButtons;
+        private SingleSmashHandler handlerKeybinds;
+        private ModConfig config;
 
         internal IModHelper helper;
-
-        private ModConfig config;
 
         public override void Entry(IModHelper helper)
         {
@@ -29,7 +22,8 @@ namespace QualitySmash
             var buttonQuality = helper.Content.Load<Texture2D>("assets/buttonQuality.png");
 
             this.helper = helper;
-            this.handler = new QualitySmashHandler(this, config, buttonColor, buttonQuality);
+            this.handlerUiButtons = new QualitySmashHandler(this, config, buttonColor, buttonQuality);
+            this.handlerKeybinds = new SingleSmashHandler(this, this.config);
 
             AddEvents(helper);
 
@@ -43,7 +37,7 @@ namespace QualitySmash
         }
 
         /// <summary>
-        /// Gets the ItemGrabMenu
+        /// Gets the ItemGrabMenu if it's from a fridge or chest
         /// </summary>
         /// <returns>The ItemGrabMenu</returns>
         internal MenuWithInventory GetContainerMenu()
@@ -66,13 +60,13 @@ namespace QualitySmash
         {
             if (!Context.IsWorldReady) return;
 
-            var scaledMousePos = new Point(Game1.getMouseX(true), Game1.getMouseY(true));
-            
-            handler.TryHover(scaledMousePos.X, scaledMousePos.Y);
+            var scaledMousePos = Game1.getMousePosition(true);
+
+            handlerUiButtons.TryHover(scaledMousePos.X, scaledMousePos.Y);
         }
 
         /// <summary>
-        /// Begins a check if a mouse click or button press was on a Smash button
+        /// Begins a check of whether a mouse click or button press was on a Smash button
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -80,18 +74,27 @@ namespace QualitySmash
         {
             if (!Context.IsWorldReady) return;
 
-            var menu = GetContainerMenu();
-            
-            if (menu != null)
+            if (GetContainerMenu() != null)
                 if (e.Button == SButton.MouseLeft || e.Button == SButton.ControllerA || e.Button == SButton.C)
-                    handler.HandleClick(e.Cursor);
+                {
+                    if (config.EnableUISmashButtons)
+                        handlerUiButtons.HandleClick(e.Cursor);
+                    if (config.EnableSingleItemSmashKeybinds)
+                    {
+                        if (helper.Input.IsDown(config.ColorSmashKeybind) ||
+                            helper.Input.IsDown(config.QualitySmashKeybind))
+                        {
+
+                        }
+                    }
+                }
         }
 
         private void OnRenderedActiveMenu(object sender, RenderedActiveMenuEventArgs e)
         {
             if (!Context.IsWorldReady) return;
             if (GetContainerMenu() != null)
-                handler.DrawButtons();
+                handlerUiButtons.DrawButtons();
         }
     }
 }
