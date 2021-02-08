@@ -5,6 +5,7 @@ using StardewValley;
 using StardewValley.Menus;
 using StardewValley.Objects;
 using System.Collections.Generic;
+using StardewModdingAPI.Events;
 
 namespace QualitySmash
 {
@@ -18,12 +19,6 @@ namespace QualitySmash
         private readonly Texture2D imageColor;
         private readonly Texture2D imageQuality;
         private readonly ModConfig config;
-
-        private enum SmashType
-        {
-            Color,
-            Quality
-        }
 
         /// <summary>
         /// Initializes stuff for the mod.
@@ -114,11 +109,13 @@ namespace QualitySmash
             return false;
         }
 
-        internal void HandleClick(ICursorPosition cursor)
+        internal void HandleClick(ButtonPressedEventArgs e)
         {
-            var scaledMousePos = new Point(Game1.getMouseX(true), Game1.getMouseY(true));
-
             ItemGrabMenu menu = null;
+
+            Game1.uiMode = true;
+            var cursorPos = e.Cursor.GetScaledScreenPixels();
+            Game1.uiMode = false;
 
             if (modEntry.GetContainerMenu() is ItemGrabMenu)
                 menu = modEntry.GetContainerMenu() as ItemGrabMenu;
@@ -126,20 +123,20 @@ namespace QualitySmash
             if (menu == null)
                 return;
 
-            if (buttonColor.containsPoint(scaledMousePos.X, scaledMousePos.Y))
+            if (buttonColor.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
             {
                 Game1.playSound("clubhit");
-                DoSmash(menu, SmashType.Color);
+                DoSmash(menu, ModEntry.SmashType.Color);
             }
 
-            if (buttonQuality.containsPoint(scaledMousePos.X, scaledMousePos.Y))
+            if (buttonQuality.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
             {
                 Game1.playSound("clubhit");
-                DoSmash(menu, SmashType.Quality);
+                DoSmash(menu, ModEntry.SmashType.Quality);
             }
         }
 
-        private void DoSmash(ItemGrabMenu menu, SmashType smashType)
+        private void DoSmash(ItemGrabMenu menu, ModEntry.SmashType smashType)
         {
             var areItemsChanged = false;
 
@@ -151,7 +148,7 @@ namespace QualitySmash
             {
                 if (containerInventory[i] == null || !(containerInventory[i] is StardewValley.Object))
                     continue;
-                if (smashType == SmashType.Color)
+                if (smashType == ModEntry.SmashType.Color)
                 {
                     if (!(containerInventory[i] is ColoredObject c) ||
                         c.Category != -80 ||
@@ -167,7 +164,7 @@ namespace QualitySmash
                     containerInventory.RemoveAt(i);
                     i--;
                 }
-                else if (smashType == SmashType.Quality)
+                else if (smashType == ModEntry.SmashType.Quality)
                 {
                     if ((containerInventory[i] as StardewValley.Object)?.Quality == 0) continue;
 
