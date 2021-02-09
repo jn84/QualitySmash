@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.DynamicData;
 using Microsoft.Build.Logging;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
@@ -16,13 +18,22 @@ namespace QualitySmash
     {
         private string hoverTextColor;
         private string hoverTextQuality;
+        private readonly Texture2D cursorColor;
+        private readonly Texture2D cursorQuality;
         private readonly ModEntry modEntry;
         private readonly ModConfig config;
 
-        public SingleSmashHandler(ModEntry modEntry, ModConfig config)
+        private IList<Item> actualItems;
+
+        public SingleSmashHandler(ModEntry modEntry, ModConfig config, Texture2D cursorColor, Texture2D cursorQuality)
         {
             this.modEntry = modEntry;
             this.config = config;
+            this.cursorColor = cursorColor;
+            this.cursorQuality = cursorQuality;
+
+            this.hoverTextColor = "";
+            this.hoverTextQuality = "";
         }
 
         internal void HandleClick(ButtonPressedEventArgs e)
@@ -32,7 +43,7 @@ namespace QualitySmash
             if (menu == null || !config.EnableSingleItemSmashKeybinds)
                 return;
 
-            Item itemToSmash;
+            ClickableComponent cursorHoverItem;
 
             ModEntry.SmashType smashType;
             if (modEntry.helper.Input.IsDown(config.ColorSmashKeybind))
@@ -42,54 +53,66 @@ namespace QualitySmash
             else
                 return;
 
+            bool oldUiMode = Game1.uiMode;
             Game1.uiMode = true;
             var cursorPos = e.Cursor.GetScaledScreenPixels();
-            Game1.uiMode = false;
+            Game1.uiMode = oldUiMode;
+
+            // If the cursor was over a valid item when left clicked, initiate smash
+            cursorHoverItem = CheckInventoriesForCursorHoverItem(menu, cursorPos);
+
+            if (cursorHoverItem == null)
+                return;
+
+            var itemToSmash = cursorHoverItem.item;
+
+            if (itemToSmash != null)
+                DoSmash(itemToSmash, smashType);
+        }
+
+        private ClickableComponent CheckInventoriesForCursorHoverItem(IClickableMenu menu, Vector2 cursorPos)
+        {
+            ClickableComponent itemToSmash;
 
             if (menu is ItemGrabMenu grabMenu)
             {
-                itemToSmash = ScanForClickedItem(grabMenu.inventory.inventory, grabMenu.inventory.actualInventory, cursorPos, smashType);
+                itemToSmash = ScanForHoveredItem(grabMenu.inventory.inventory, cursorPos);
                 if (itemToSmash != null)
                 {
-                    DoSmash(itemToSmash, smashType);
-                    return;
+                    this.actualItems = grabMenu.inventory.actualInventory;
+                    return itemToSmash;
                 }
 
-                itemToSmash = ScanForClickedItem(grabMenu.ItemsToGrabMenu.inventory, grabMenu.ItemsToGrabMenu.actualInventory, cursorPos, smashType);
+                itemToSmash = ScanForHoveredItem(grabMenu.ItemsToGrabMenu.inventory, cursorPos);
                 if (itemToSmash != null)
                 {
-                    DoSmash(itemToSmash, smashType);
-                    return;
+                    this.actualItems = grabMenu.ItemsToGrabMenu.actualInventory;
+                    return itemToSmash;
                 }
             }
             if (menu is GameMenu gameMenu)
             {
                 if (!(gameMenu.GetCurrentPage() is InventoryPage inventoryPage))
-                    return;
+                    return null;
 
-                itemToSmash = ScanForClickedItem(inventoryPage.inventory.inventory, inventoryPage.inventory.actualInventory, cursorPos, smashType);
+                itemToSmash = ScanForHoveredItem(inventoryPage.inventory.inventory, cursorPos);
                 if (itemToSmash != null)
                 {
-                    DoSmash(itemToSmash, smashType);
-                    return;
+                    actualItems = inventoryPage.inventory.actualInventory;
+                    return itemToSmash;
                 }
             }
+
+            return null;
         }
 
-        private Item ScanForClickedItem(List<ClickableComponent> clickableItems, IList<Item> actualItems, Vector2 cursorPos, ModEntry.SmashType smashType)
+        private ClickableComponent ScanForHoveredItem(List<ClickableComponent> clickableItems, Vector2 cursorPos)
         {
             foreach (var clickableItem in clickableItems)
             {
                 if (!clickableItem.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
                     continue;
-
-                var itemSlotNumber = Convert.ToInt32(clickableItem.name);
-
-                if (itemSlotNumber < actualItems.Count &&
-                    actualItems[itemSlotNumber] != null)
-                {
-                    return actualItems[itemSlotNumber];
-                }
+                return clickableItem;
             }
             return null;
         }
@@ -115,17 +138,74 @@ namespace QualitySmash
         // Should be reworked to hover over any item in any inventory
         internal bool TryHover(float x, float y)
         {
-            this.hoverTextColor = "Smash Color";
-            this.hoverTextQuality = "Smash Quality";
             var menu = modEntry.GetValidKeybindSmashMenu();
 
             if (menu == null || !config.EnableSingleItemSmashKeybinds)
                 return false;
 
-            
-            // Modify the default hover text if the correct key isHeld()
-            
+            this.hoverTextColor = "";
+            this.hoverTextQuality = "";
+
+            var cursorPos = new Vector2(x, y);
+
+            var item = CheckInventoriesForCursorHoverItem(menu, cursorPos);
+
+            if (item != null)
+            {
+                if (modEntry.helper.Input.IsDown(config.ColorSmashKeybind))
+                {
+                    if (item.containsPoint((int) x, (int) y))
+                    {
+                         this.hoverTextColor = modEntry.helper.Translation.Get("hoverTextColor");
+                         return true;
+                    }
+                }
+                else if (modEntry.helper.Input.IsDown(config.QualitySmashKeybind))
+                {
+                    if (item.containsPoint((int) x, (int) y))
+                    {
+                        this.hoverTextQuality = modEntry.helper.Translation.Get("hoverTextQuality");
+                        return true;
+                    }
+                }
+            }
             return false;
+        }
+
+        public void DrawHoverText()
+        {
+            Texture2D cursor = null;
+            var yOffset = 0;
+            var xOffset = 0;
+
+            modEntry.Monitor.Log("Drawing hover text");
+
+            if (this.hoverTextColor != "")
+            {
+                IClickableMenu.drawHoverText(Game1.spriteBatch, hoverTextColor, Game1.smallFont, 65, -87);
+                cursor = this.cursorColor;
+                yOffset = -50;
+                xOffset = 40;
+            }
+
+            else if (this.hoverTextQuality != "")
+            {
+                IClickableMenu.drawHoverText(Game1.spriteBatch, hoverTextQuality, Game1.smallFont, 65, -87);
+                cursor = this.cursorQuality;
+                yOffset = -50;
+                xOffset = 40;
+            }
+            else
+            {
+                cursor = Game1.mouseCursors;
+                yOffset = 0;
+                xOffset = 0;
+            }
+
+            // Draws cursor over the GUI element
+            Game1.spriteBatch.Draw(cursor, new Vector2(Game1.getOldMouseX() + xOffset, Game1.getOldMouseY() + yOffset),
+                Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, 0, 16, 16), Color.White, 0f, Vector2.Zero,
+                4f + Game1.dialogueButtonScale / 150f, SpriteEffects.None, 0);
         }
     }
 }

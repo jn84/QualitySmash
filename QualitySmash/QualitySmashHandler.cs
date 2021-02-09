@@ -35,18 +35,37 @@ namespace QualitySmash
             this.imageQuality = imageQuality;
             buttonColor = new ClickableTextureComponent(Rectangle.Empty, null, new Rectangle(0, 0, 16, 16), 4f)
             {
-                hoverText = modEntry.helper.Translation.Get("hoverTextColor")
+                hoverText = modEntry.helper.Translation.Get("hoverTextColor"),
             };
 
             buttonQuality = new ClickableTextureComponent(Rectangle.Empty, null, new Rectangle(0, 0, 16, 16), 4f)
             {
-                hoverText = modEntry.helper.Translation.Get("hoverTextQuality")
+                hoverText = modEntry.helper.Translation.Get("hoverTextQuality"),
             };
         }
+
+        //private void PopulateIds(ItemGrabMenu menu)
+        //{
+        //    buttonColor.myID = 102906;
+        //    buttonColor.leftNeighborID = 4343 + 21;
+        //    buttonColor.downNeighborID = 102907;
+
+        //    buttonQuality.myID = 102907;
+        //    buttonQuality.leftNeighborID = 106;
+        //    buttonQuality.upNeighborID = 102906;
+
+        //    menu.fillStacksButton.rightNeighborID = 102907;
+        //    if (menu.colorPickerToggleButton != null)
+        //        menu.colorPickerToggleButton.rightNeighborID = 102906;
+        //}
 
         private void UpdateButtonPositions()
         {
             var menu = Game1.activeClickableMenu;
+
+            //if (menu is ItemGrabMenu grabMenu)
+            //    PopulateIds(grabMenu);
+
             if (menu == null) 
                 return;
 
@@ -112,9 +131,10 @@ namespace QualitySmash
         {
             ItemGrabMenu menu = null;
 
+            var oldUiMode = Game1.uiMode;
             Game1.uiMode = true;
             var cursorPos = e.Cursor.GetScaledScreenPixels();
-            Game1.uiMode = false;
+            Game1.uiMode = oldUiMode;
 
             if (modEntry.GetValidButtonSmashMenu() is ItemGrabMenu)
                 menu = modEntry.GetValidButtonSmashMenu() as ItemGrabMenu;

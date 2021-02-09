@@ -28,8 +28,8 @@ namespace QualitySmash
             var buttonQuality = helper.Content.Load<Texture2D>("assets/buttonQuality.png");
 
             this.helper = helper;
-            this.handlerUiButtons = new QualitySmashHandler(this, config, buttonColor, buttonQuality);
-            this.handlerKeybinds = new SingleSmashHandler(this, this.config);
+            this.handlerUiButtons = new QualitySmashHandler(this, this.config, buttonColor, buttonQuality);
+            this.handlerKeybinds = new SingleSmashHandler(this, this.config, buttonColor, buttonQuality);
 
             AddEvents(helper);
 
@@ -118,6 +118,9 @@ namespace QualitySmash
             if (GetValidButtonSmashMenu() != null)
                 if (config.EnableUISmashButtons)
                     handlerUiButtons.DrawButtons();
+            if (GetValidKeybindSmashMenu() != null)
+                if (config.EnableSingleItemSmashKeybinds)
+                    handlerKeybinds.DrawHoverText();
             //var menu = Game1.activeClickableMenu;
             //if (menu == null)
             //    return;
