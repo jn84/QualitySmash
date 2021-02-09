@@ -5,6 +5,7 @@ using StardewValley;
 using StardewValley.Menus;
 using StardewValley.Objects;
 using System.Collections.Generic;
+using StardewModdingAPI.Events;
 
 namespace QualitySmash
 {
@@ -18,12 +19,6 @@ namespace QualitySmash
         private readonly Texture2D imageColor;
         private readonly Texture2D imageQuality;
         private readonly ModConfig config;
-
-        private enum SmashType
-        {
-            Color,
-            Quality
-        }
 
         /// <summary>
         /// Initializes stuff for the mod.
@@ -40,21 +35,39 @@ namespace QualitySmash
             this.imageQuality = imageQuality;
             buttonColor = new ClickableTextureComponent(Rectangle.Empty, null, new Rectangle(0, 0, 16, 16), 4f)
             {
-                hoverText = modEntry.helper.Translation.Get("hoverTextColor")
+                hoverText = modEntry.helper.Translation.Get("hoverTextColor"),
             };
 
             buttonQuality = new ClickableTextureComponent(Rectangle.Empty, null, new Rectangle(0, 0, 16, 16), 4f)
             {
-                hoverText = modEntry.helper.Translation.Get("hoverTextQuality")
+                hoverText = modEntry.helper.Translation.Get("hoverTextQuality"),
             };
         }
+
+        //private void PopulateIds(ItemGrabMenu menu)
+        //{
+        //    buttonColor.myID = 102906;
+        //    buttonColor.leftNeighborID = 4343 + 21;
+        //    buttonColor.downNeighborID = 102907;
+
+        //    buttonQuality.myID = 102907;
+        //    buttonQuality.leftNeighborID = 106;
+        //    buttonQuality.upNeighborID = 102906;
+
+        //    menu.fillStacksButton.rightNeighborID = 102907;
+        //    if (menu.colorPickerToggleButton != null)
+        //        menu.colorPickerToggleButton.rightNeighborID = 102906;
+        //}
 
         private void UpdateButtonPositions()
         {
             var menu = Game1.activeClickableMenu;
+
+            //if (menu is ItemGrabMenu grabMenu)
+            //    PopulateIds(grabMenu);
+
             if (menu == null) 
                 return;
-
 
             const int length = 64;
             const int positionFromBottom = 3;
@@ -74,8 +87,8 @@ namespace QualitySmash
             buttonColor.texture = imageColor;
             buttonQuality.texture = imageQuality;
 
-            buttonColor.draw(Game1.spriteBatch);
-            buttonQuality.draw(Game1.spriteBatch);
+            buttonColor.draw(Game1.spriteBatch, Color.White, 0f, 0);
+            buttonQuality.draw(Game1.spriteBatch, Color.White, 0f, 0);
 
             if (hoverTextColor != "")
                 IClickableMenu.drawHoverText(Game1.spriteBatch, hoverTextColor, Game1.smallFont);
@@ -93,7 +106,7 @@ namespace QualitySmash
         {
             this.hoverTextColor = "";
             this.hoverTextQuality = "";
-            var menu = modEntry.GetContainerMenu();
+            var menu = modEntry.GetValidButtonSmashMenu();
 
             if (menu != null)
             { 
@@ -114,32 +127,35 @@ namespace QualitySmash
             return false;
         }
 
-        internal void HandleClick(ICursorPosition cursor)
+        internal void HandleClick(ButtonPressedEventArgs e)
         {
-            var scaledMousePos = new Point(Game1.getMouseX(true), Game1.getMouseY(true));
-
             ItemGrabMenu menu = null;
 
-            if (modEntry.GetContainerMenu() is ItemGrabMenu)
-                menu = modEntry.GetContainerMenu() as ItemGrabMenu;
+            var oldUiMode = Game1.uiMode;
+            Game1.uiMode = true;
+            var cursorPos = e.Cursor.GetScaledScreenPixels();
+            Game1.uiMode = oldUiMode;
+
+            if (modEntry.GetValidButtonSmashMenu() is ItemGrabMenu)
+                menu = modEntry.GetValidButtonSmashMenu() as ItemGrabMenu;
 
             if (menu == null)
                 return;
 
-            if (buttonColor.containsPoint(scaledMousePos.X, scaledMousePos.Y))
+            if (buttonColor.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
             {
                 Game1.playSound("clubhit");
-                DoSmash(menu, SmashType.Color);
+                DoSmash(menu, ModEntry.SmashType.Color);
             }
 
-            if (buttonQuality.containsPoint(scaledMousePos.X, scaledMousePos.Y))
+            if (buttonQuality.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
             {
                 Game1.playSound("clubhit");
-                DoSmash(menu, SmashType.Quality);
+                DoSmash(menu, ModEntry.SmashType.Quality);
             }
         }
 
-        private void DoSmash(ItemGrabMenu menu, SmashType smashType)
+        private void DoSmash(ItemGrabMenu menu, ModEntry.SmashType smashType)
         {
             var areItemsChanged = false;
 
@@ -151,7 +167,7 @@ namespace QualitySmash
             {
                 if (containerInventory[i] == null || !(containerInventory[i] is StardewValley.Object))
                     continue;
-                if (smashType == SmashType.Color)
+                if (smashType == ModEntry.SmashType.Color)
                 {
                     if (!(containerInventory[i] is ColoredObject c) ||
                         c.Category != -80 ||
@@ -167,7 +183,7 @@ namespace QualitySmash
                     containerInventory.RemoveAt(i);
                     i--;
                 }
-                else if (smashType == SmashType.Quality)
+                else if (smashType == ModEntry.SmashType.Quality)
                 {
                     if ((containerInventory[i] as StardewValley.Object)?.Quality == 0) continue;
 

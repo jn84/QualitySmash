@@ -1,25 +1,24 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
-using StardewValley.Objects;
-using System;
-using System.IO;
-using System.Reflection;
-using Microsoft.Xna.Framework;
-
 
 namespace QualitySmash
 {
     public class ModEntry : Mod
     {
-        private QualitySmashHandler handler;
+        internal enum SmashType
+        {
+            Color,
+            Quality
+        }
+
+        private QualitySmashHandler handlerUiButtons;
+        private SingleSmashHandler handlerKeybinds;
+        private ModConfig config;
 
         internal IModHelper helper;
-
-        private ModConfig config;
 
         public override void Entry(IModHelper helper)
         {
@@ -29,7 +28,8 @@ namespace QualitySmash
             var buttonQuality = helper.Content.Load<Texture2D>("assets/buttonQuality.png");
 
             this.helper = helper;
-            this.handler = new QualitySmashHandler(this, config, buttonColor, buttonQuality);
+            this.handlerUiButtons = new QualitySmashHandler(this, this.config, buttonColor, buttonQuality);
+            this.handlerKeybinds = new SingleSmashHandler(this, this.config, buttonColor, buttonQuality);
 
             AddEvents(helper);
 
@@ -39,14 +39,15 @@ namespace QualitySmash
         {
             helper.Events.Display.RenderedActiveMenu += OnRenderedActiveMenu;
             helper.Events.Input.ButtonPressed += OnButtonPressed;
+            helper.Events.Input.ButtonReleased += OnButtonReleased;
             helper.Events.Input.CursorMoved += OnCursorMoved;
         }
 
         /// <summary>
-        /// Gets the ItemGrabMenu
+        /// Gets the ItemGrabMenu if it's from a fridge or chest
         /// </summary>
         /// <returns>The ItemGrabMenu</returns>
-        internal MenuWithInventory GetContainerMenu()
+        internal MenuWithInventory GetValidButtonSmashMenu()
         {
             if (Game1.activeClickableMenu != null && Game1.activeClickableMenu is MenuWithInventory)
             {
@@ -62,17 +63,35 @@ namespace QualitySmash
             return null;
         }
 
+        internal IClickableMenu GetValidKeybindSmashMenu()
+        {
+            // InventoryMenu or MenuWithInventory.. Use ItemGrabMenu?
+            if (Game1.activeClickableMenu != null &&
+                (Game1.activeClickableMenu is ItemGrabMenu ||
+                 Game1.activeClickableMenu is GameMenu)) 
+                return Game1.activeClickableMenu;
+            return null;
+        }
+
         private void OnCursorMoved(object sender, CursorMovedEventArgs e)
         {
             if (!Context.IsWorldReady) return;
 
-            var scaledMousePos = new Point(Game1.getMouseX(true), Game1.getMouseY(true));
-            
-            handler.TryHover(scaledMousePos.X, scaledMousePos.Y);
+            UpdateHoverText();
+        }
+
+        private void UpdateHoverText()
+        {
+            var scaledMousePos = Game1.getMousePosition(true);
+
+            if (config.EnableUISmashButtons)
+                handlerUiButtons.TryHover(scaledMousePos.X, scaledMousePos.Y);
+            if (config.EnableSingleItemSmashKeybinds)
+                handlerKeybinds.TryHover(scaledMousePos.X, scaledMousePos.Y);
         }
 
         /// <summary>
-        /// Begins a check if a mouse click or button press was on a Smash button
+        /// Begins a check of whether a mouse click or button press was on a Smash button
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -80,18 +99,50 @@ namespace QualitySmash
         {
             if (!Context.IsWorldReady) return;
 
-            var menu = GetContainerMenu();
-            
-            if (menu != null)
-                if (e.Button == SButton.MouseLeft || e.Button == SButton.ControllerA || e.Button == SButton.C)
-                    handler.HandleClick(e.Cursor);
+            if (e.Button == config.ColorSmashKeybind || e.Button == config.QualitySmashKeybind)
+            {
+                UpdateHoverText();
+                return;
+            }
+
+            if (e.Button != SButton.MouseLeft && e.Button != SButton.ControllerA)
+                return;
+
+            if (config.EnableUISmashButtons && GetValidButtonSmashMenu() != null)
+            {
+                handlerUiButtons.HandleClick(e);
+            }
+
+            if (config.EnableSingleItemSmashKeybinds && GetValidKeybindSmashMenu() != null)
+            {
+                if (helper.Input.IsDown(config.ColorSmashKeybind) ||
+                    helper.Input.IsDown(config.QualitySmashKeybind))
+                {
+                    handlerKeybinds.HandleClick(e);
+                    helper.Input.Suppress(SButton.MouseLeft);
+                    helper.Input.Suppress(SButton.ControllerA);
+                }
+            }
+        }
+
+        private void OnButtonReleased(object sender, ButtonReleasedEventArgs e)
+        {
+            if (e.Button == config.ColorSmashKeybind || e.Button == config.QualitySmashKeybind)
+            {
+                UpdateHoverText();
+                return;
+            }
         }
 
         private void OnRenderedActiveMenu(object sender, RenderedActiveMenuEventArgs e)
         {
             if (!Context.IsWorldReady) return;
-            if (GetContainerMenu() != null)
-                handler.DrawButtons();
+            if (GetValidButtonSmashMenu() != null)
+                if (config.EnableUISmashButtons)
+                    handlerUiButtons.DrawButtons();
+            if (GetValidKeybindSmashMenu() != null)
+                if (config.EnableSingleItemSmashKeybinds)
+                    handlerKeybinds.DrawHoverText();
         }
     }
 }

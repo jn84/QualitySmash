@@ -3,13 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework.Input;
+using StardewModdingAPI;
 
 namespace QualitySmash
 {
     class ModConfig
     {
-        public string ItemIDReference { get; set; }
+        public bool EnableUISmashButtons { get; set; }
 
+        public bool EnableSingleItemSmashKeybinds { get; set; }
+
+        public SButton ColorSmashKeybind { get; set; }
+
+        public SButton QualitySmashKeybind { get; set; }
+
+        public string ItemIDReference { get; set; }
+        
         public List<string> IgnoreIridiumDescription { get; }
         public bool IgnoreIridium { get; set; }
 
@@ -36,6 +46,14 @@ namespace QualitySmash
 
         public ModConfig()
         {
+            this.EnableUISmashButtons = true;
+            
+            this.EnableSingleItemSmashKeybinds = false;
+
+            this.ColorSmashKeybind = SButton.C;
+
+            this.QualitySmashKeybind = SButton.Q;
+
             this.ItemIDReference = "Item ID reference: https://stardewids.com";
 
             this.IgnoreIridiumDescription = new List<string>()
