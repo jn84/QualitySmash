@@ -50,7 +50,6 @@ namespace QualitySmash
             if (menu == null) 
                 return;
 
-
             const int length = 64;
             const int positionFromBottom = 3;
             const int gapSize = 16;
@@ -88,7 +87,7 @@ namespace QualitySmash
         {
             this.hoverTextColor = "";
             this.hoverTextQuality = "";
-            var menu = modEntry.GetContainerMenu();
+            var menu = modEntry.GetValidButtonSmashMenu();
 
             if (menu != null)
             { 
@@ -117,8 +116,8 @@ namespace QualitySmash
             var cursorPos = e.Cursor.GetScaledScreenPixels();
             Game1.uiMode = false;
 
-            if (modEntry.GetContainerMenu() is ItemGrabMenu)
-                menu = modEntry.GetContainerMenu() as ItemGrabMenu;
+            if (modEntry.GetValidButtonSmashMenu() is ItemGrabMenu)
+                menu = modEntry.GetValidButtonSmashMenu() as ItemGrabMenu;
 
             if (menu == null)
                 return;

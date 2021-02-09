@@ -46,7 +46,7 @@ namespace QualitySmash
         /// Gets the ItemGrabMenu if it's from a fridge or chest
         /// </summary>
         /// <returns>The ItemGrabMenu</returns>
-        internal MenuWithInventory GetContainerMenu()
+        internal MenuWithInventory GetValidButtonSmashMenu()
         {
             if (Game1.activeClickableMenu != null && Game1.activeClickableMenu is MenuWithInventory)
             {
@@ -67,11 +67,8 @@ namespace QualitySmash
             // InventoryMenu or MenuWithInventory.. Use ItemGrabMenu?
             if (Game1.activeClickableMenu != null &&
                 (Game1.activeClickableMenu is ItemGrabMenu ||
-                 Game1.activeClickableMenu is GameMenu))
-            {
-                var menu = Game1.activeClickableMenu;
-                return menu;
-            }
+                 Game1.activeClickableMenu is GameMenu)) 
+                return Game1.activeClickableMenu;
             return null;
         }
 
@@ -99,40 +96,18 @@ namespace QualitySmash
             if (e.Button != SButton.MouseLeft && e.Button != SButton.ControllerA)
                 return;
 
-            if (GetContainerMenu() != null)
-            {
-                if (config.EnableUISmashButtons)
-                {
+            if (config.EnableUISmashButtons && GetValidButtonSmashMenu() != null)
                     handlerUiButtons.HandleClick(e);
-                    Monitor.Log("Sending click to UI Button Handler");
-                }
 
-                if (config.EnableSingleItemSmashKeybinds)
-                {
-                    Monitor.Log("Keybind is active: check passed");
-                    if (helper.Input.IsDown(config.ColorSmashKeybind) ||
-                        helper.Input.IsDown(config.ColorSmashKeybind))
-                    {
-                        Monitor.Log("Sending click to keybind Handler");
-                        handlerKeybinds.HandleClick(e); 
-                        helper.Input.Suppress(SButton.MouseLeft);
-                        helper.Input.Suppress(SButton.ControllerA);
-                    }
-                }
-            }
-
-            if (GetValidKeybindSmashMenu() != null)
+            if (config.EnableSingleItemSmashKeybinds && GetValidKeybindSmashMenu() != null)
             {
-                if (config.EnableSingleItemSmashKeybinds)
+                if (helper.Input.IsDown(config.ColorSmashKeybind) ||
+                    helper.Input.IsDown(config.QualitySmashKeybind))
                 {
-                    if (helper.Input.IsDown(config.ColorSmashKeybind) ||
-                        helper.Input.IsDown(config.QualitySmashKeybind))
-                    {
-                        Monitor.Log("Sending click to keybind Handler (GameMenu...)");
-                        handlerKeybinds.HandleClick(e);
-                        helper.Input.Suppress(SButton.MouseLeft);
-                        helper.Input.Suppress(SButton.ControllerA);
-                    }
+                    Monitor.Log("Sending click to keybind Handler (GameMenu...)");
+                    handlerKeybinds.HandleClick(e);
+                    helper.Input.Suppress(SButton.MouseLeft);
+                    helper.Input.Suppress(SButton.ControllerA);
                 }
             }
         }
@@ -140,7 +115,7 @@ namespace QualitySmash
         private void OnRenderedActiveMenu(object sender, RenderedActiveMenuEventArgs e)
         {
             if (!Context.IsWorldReady) return;
-            if (GetContainerMenu() != null)
+            if (GetValidButtonSmashMenu() != null)
                 if (config.EnableUISmashButtons)
                     handlerUiButtons.DrawButtons();
             //var menu = Game1.activeClickableMenu;

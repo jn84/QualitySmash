@@ -29,11 +29,12 @@ namespace QualitySmash
         {
             var menu = modEntry.GetValidKeybindSmashMenu();
 
-            ModEntry.SmashType smashType;
-
             if (menu == null || !config.EnableSingleItemSmashKeybinds)
                 return;
 
+            Item itemToSmash;
+
+            ModEntry.SmashType smashType;
             if (modEntry.helper.Input.IsDown(config.ColorSmashKeybind))
                 smashType = ModEntry.SmashType.Color;
             else if (modEntry.helper.Input.IsDown(config.QualitySmashKeybind))
@@ -47,36 +48,18 @@ namespace QualitySmash
 
             if (menu is ItemGrabMenu grabMenu)
             {
-                // Scan player inventory for click
-                foreach (var clickableItem in grabMenu.inventory.inventory)
+                itemToSmash = ScanForClickedItem(grabMenu.inventory.inventory, grabMenu.inventory.actualInventory, cursorPos, smashType);
+                if (itemToSmash != null)
                 {
-                    if (!clickableItem.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
-                        continue;
-
-                    var itemSlotNumber = Convert.ToInt32(clickableItem.name);
-
-                    if (itemSlotNumber < grabMenu.inventory.actualInventory.Count &&
-                        grabMenu.inventory.actualInventory[itemSlotNumber] != null)
-                    {
-                        DoSmash(grabMenu.inventory.actualInventory[itemSlotNumber], smashType);
-                        break;
-                    }
+                    DoSmash(itemToSmash, smashType);
+                    return;
                 }
 
-                // Scan container inventory for click
-                foreach (var clickableItem in grabMenu.ItemsToGrabMenu.inventory)
+                itemToSmash = ScanForClickedItem(grabMenu.ItemsToGrabMenu.inventory, grabMenu.ItemsToGrabMenu.actualInventory, cursorPos, smashType);
+                if (itemToSmash != null)
                 {
-                    if (!clickableItem.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
-                        continue;
-
-                    var itemSlotNumber = Convert.ToInt32(clickableItem.name);
-
-                    if (itemSlotNumber < grabMenu.ItemsToGrabMenu.actualInventory.Count &&
-                        grabMenu.ItemsToGrabMenu.actualInventory[itemSlotNumber] != null)
-                    {
-                        DoSmash(grabMenu.ItemsToGrabMenu.actualInventory[itemSlotNumber], smashType);
-                        break;
-                    }
+                    DoSmash(itemToSmash, smashType);
+                    return;
                 }
             }
             if (menu is GameMenu gameMenu)
@@ -84,21 +67,31 @@ namespace QualitySmash
                 if (!(gameMenu.GetCurrentPage() is InventoryPage inventoryPage))
                     return;
 
-                foreach (var clickableItem in inventoryPage.inventory.inventory)
+                itemToSmash = ScanForClickedItem(inventoryPage.inventory.inventory, inventoryPage.inventory.actualInventory, cursorPos, smashType);
+                if (itemToSmash != null)
                 {
-                    if (!clickableItem.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
-                        continue;
-
-                    var itemSlotNumber = Convert.ToInt32(clickableItem.name);
-
-                    if (itemSlotNumber < inventoryPage.inventory.actualInventory.Count && 
-                        inventoryPage.inventory.actualInventory[itemSlotNumber] != null)
-                    {
-                        DoSmash(inventoryPage.inventory.actualInventory[itemSlotNumber], smashType);
-                        break;
-                    }
+                    DoSmash(itemToSmash, smashType);
+                    return;
                 }
             }
+        }
+
+        private Item ScanForClickedItem(List<ClickableComponent> clickableItems, IList<Item> actualItems, Vector2 cursorPos, ModEntry.SmashType smashType)
+        {
+            foreach (var clickableItem in clickableItems)
+            {
+                if (!clickableItem.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
+                    continue;
+
+                var itemSlotNumber = Convert.ToInt32(clickableItem.name);
+
+                if (itemSlotNumber < actualItems.Count &&
+                    actualItems[itemSlotNumber] != null)
+                {
+                    return actualItems[itemSlotNumber];
+                }
+            }
+            return null;
         }
 
         private void DoSmash(Item item, ModEntry.SmashType smashType)
