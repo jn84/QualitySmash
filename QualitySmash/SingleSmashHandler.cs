@@ -64,10 +64,22 @@ namespace QualitySmash
             if (cursorHoverItem == null)
                 return;
 
-            var itemToSmash = cursorHoverItem.item;
+            var itemToSmash = GetActualItem(cursorHoverItem);
 
             if (itemToSmash != null)
                 DoSmash(itemToSmash, smashType);
+        }
+
+        private Item GetActualItem(ClickableComponent clickableItem)
+        {
+            var itemSlotNumber = Convert.ToInt32(clickableItem.name);
+
+            if (actualItems == null)
+                return null;
+
+            if (itemSlotNumber < actualItems.Count && actualItems[itemSlotNumber] != null)
+                return actualItems[itemSlotNumber];
+            return null;
         }
 
         private ClickableComponent CheckInventoriesForCursorHoverItem(IClickableMenu menu, Vector2 cursorPos)
