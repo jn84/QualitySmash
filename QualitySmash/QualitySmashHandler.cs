@@ -87,8 +87,8 @@ namespace QualitySmash
             buttonColor.texture = imageColor;
             buttonQuality.texture = imageQuality;
 
-            buttonColor.draw(Game1.spriteBatch);
-            buttonQuality.draw(Game1.spriteBatch);
+            buttonColor.draw(Game1.spriteBatch, Color.White, 0f, 0);
+            buttonQuality.draw(Game1.spriteBatch, Color.White, 0f, 0);
 
             if (hoverTextColor != "")
                 IClickableMenu.drawHoverText(Game1.spriteBatch, hoverTextColor, Game1.smallFont);

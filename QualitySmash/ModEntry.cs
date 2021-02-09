@@ -39,6 +39,7 @@ namespace QualitySmash
         {
             helper.Events.Display.RenderedActiveMenu += OnRenderedActiveMenu;
             helper.Events.Input.ButtonPressed += OnButtonPressed;
+            helper.Events.Input.ButtonReleased += OnButtonReleased;
             helper.Events.Input.CursorMoved += OnCursorMoved;
         }
 
@@ -76,6 +77,11 @@ namespace QualitySmash
         {
             if (!Context.IsWorldReady) return;
 
+            UpdateHoverText();
+        }
+
+        private void UpdateHoverText()
+        {
             var scaledMousePos = Game1.getMousePosition(true);
 
             if (config.EnableUISmashButtons)
@@ -93,22 +99,38 @@ namespace QualitySmash
         {
             if (!Context.IsWorldReady) return;
 
+            if (e.Button == config.ColorSmashKeybind || e.Button == config.QualitySmashKeybind)
+            {
+                UpdateHoverText();
+                return;
+            }
+
             if (e.Button != SButton.MouseLeft && e.Button != SButton.ControllerA)
                 return;
 
             if (config.EnableUISmashButtons && GetValidButtonSmashMenu() != null)
-                    handlerUiButtons.HandleClick(e);
+            {
+                handlerUiButtons.HandleClick(e);
+            }
 
             if (config.EnableSingleItemSmashKeybinds && GetValidKeybindSmashMenu() != null)
             {
                 if (helper.Input.IsDown(config.ColorSmashKeybind) ||
                     helper.Input.IsDown(config.QualitySmashKeybind))
                 {
-                    Monitor.Log("Sending click to keybind Handler (GameMenu...)");
                     handlerKeybinds.HandleClick(e);
                     helper.Input.Suppress(SButton.MouseLeft);
                     helper.Input.Suppress(SButton.ControllerA);
                 }
+            }
+        }
+
+        private void OnButtonReleased(object sender, ButtonReleasedEventArgs e)
+        {
+            if (e.Button == config.ColorSmashKeybind || e.Button == config.QualitySmashKeybind)
+            {
+                UpdateHoverText();
+                return;
             }
         }
 
@@ -121,12 +143,6 @@ namespace QualitySmash
             if (GetValidKeybindSmashMenu() != null)
                 if (config.EnableSingleItemSmashKeybinds)
                     handlerKeybinds.DrawHoverText();
-            //var menu = Game1.activeClickableMenu;
-            //if (menu == null)
-            //    return;
-            //Monitor.Log(menu.GetType().ToString(), LogLevel.Info);
-            //if (menu is MenuWithInventory)
-            //    Monitor.Log("MenuWithInventory");
         }
     }
 }

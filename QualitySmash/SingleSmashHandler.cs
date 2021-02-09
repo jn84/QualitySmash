@@ -134,6 +134,8 @@ namespace QualitySmash
             if (item.maximumStackSize() <= 1)
                 return;
 
+            Game1.playSound("clubhit");
+
             if (smashType == ModEntry.SmashType.Color)
             {
                 if (item.category == -80 && item is ColoredObject c)
@@ -145,6 +147,25 @@ namespace QualitySmash
                 if (item is StardewValley.Object o && o.Quality != 0)
                     o.Quality /= 2;
             }
+        }
+
+        private bool IsSmashable(Item item, ModEntry.SmashType smashType)
+        {
+            if (item == null)
+                return false;
+
+            if (smashType == ModEntry.SmashType.Color)
+            {
+                if (item.category == -80 && item is ColoredObject c)
+                    return true;
+            }
+
+            if (smashType == ModEntry.SmashType.Quality)
+            {
+                if (item is StardewValley.Object o && o.Quality != 0)
+                    return true;
+            }
+            return false;
         }
 
         // Should be reworked to hover over any item in any inventory
@@ -166,7 +187,7 @@ namespace QualitySmash
             {
                 if (modEntry.helper.Input.IsDown(config.ColorSmashKeybind))
                 {
-                    if (item.containsPoint((int) x, (int) y))
+                    if (item.containsPoint((int) x, (int) y) && IsSmashable(GetActualItem(item), ModEntry.SmashType.Color))
                     {
                          this.hoverTextColor = modEntry.helper.Translation.Get("hoverTextColor");
                          return true;
@@ -174,7 +195,7 @@ namespace QualitySmash
                 }
                 else if (modEntry.helper.Input.IsDown(config.QualitySmashKeybind))
                 {
-                    if (item.containsPoint((int) x, (int) y))
+                    if (item.containsPoint((int) x, (int) y) && IsSmashable(GetActualItem(item), ModEntry.SmashType.Quality))
                     {
                         this.hoverTextQuality = modEntry.helper.Translation.Get("hoverTextQuality");
                         return true;
@@ -189,8 +210,6 @@ namespace QualitySmash
             Texture2D cursor = null;
             var yOffset = 0;
             var xOffset = 0;
-
-            modEntry.Monitor.Log("Drawing hover text");
 
             if (this.hoverTextColor != "")
             {
