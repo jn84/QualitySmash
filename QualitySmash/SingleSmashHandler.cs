@@ -213,18 +213,18 @@ namespace QualitySmash
 
             if (this.hoverTextColor != "")
             {
-                IClickableMenu.drawHoverText(Game1.spriteBatch, hoverTextColor, Game1.smallFont, 65, -87);
+                IClickableMenu.drawHoverText(Game1.spriteBatch, hoverTextColor, Game1.smallFont, 57, -87);
                 cursor = this.cursorColor;
                 yOffset = -50;
-                xOffset = 40;
+                xOffset = 32;
             }
 
             else if (this.hoverTextQuality != "")
             {
-                IClickableMenu.drawHoverText(Game1.spriteBatch, hoverTextQuality, Game1.smallFont, 65, -87);
+                IClickableMenu.drawHoverText(Game1.spriteBatch, hoverTextQuality, Game1.smallFont, 57, -87);
                 cursor = this.cursorQuality;
                 yOffset = -50;
-                xOffset = 40;
+                xOffset = 32;
             }
             else
             {
