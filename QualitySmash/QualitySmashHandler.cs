@@ -36,38 +36,45 @@ namespace QualitySmash
             buttonColor = new ClickableTextureComponent(Rectangle.Empty, null, new Rectangle(0, 0, 16, 16), 4f)
             {
                 hoverText = modEntry.helper.Translation.Get("hoverTextColor"),
+                myID = 102906,
+                leftNeighborID = 27346,
+                downNeighborID = 102907,
             };
 
             buttonQuality = new ClickableTextureComponent(Rectangle.Empty, null, new Rectangle(0, 0, 16, 16), 4f)
             {
                 hoverText = modEntry.helper.Translation.Get("hoverTextQuality"),
+                myID = 102907,
+                leftNeighborID = 12952,
+                upNeighborID = 102906,
             };
         }
 
-        //private void PopulateIds(ItemGrabMenu menu)
-        //{
-        //    buttonColor.myID = 102906;
-        //    buttonColor.leftNeighborID = 4343 + 21;
-        //    buttonColor.downNeighborID = 102907;
+        internal void PopulateIds(ItemGrabMenu menu)
+        {
 
-        //    buttonQuality.myID = 102907;
-        //    buttonQuality.leftNeighborID = 106;
-        //    buttonQuality.upNeighborID = 102906;
+            if (menu.fillStacksButton != null)
+            {
+                buttonQuality.leftNeighborID = menu.fillStacksButton.myID;
+                menu.fillStacksButton.rightNeighborID = 102907;
+            }
 
-        //    menu.fillStacksButton.rightNeighborID = 102907;
-        //    if (menu.colorPickerToggleButton != null)
-        //        menu.colorPickerToggleButton.rightNeighborID = 102906;
-        //}
+            if (menu.colorPickerToggleButton != null)
+            {
+                menu.colorPickerToggleButton.rightNeighborID = 102906;
+                buttonColor.leftNeighborID = menu.colorPickerToggleButton.myID;
+            }
+        }
 
         private void UpdateButtonPositions()
         {
             var menu = Game1.activeClickableMenu;
 
-            //if (menu is ItemGrabMenu grabMenu)
-            //    PopulateIds(grabMenu);
-
             if (menu == null) 
                 return;
+
+            if (menu is ItemGrabMenu grabMenu)
+                PopulateIds(grabMenu);
 
             const int length = 64;
             const int positionFromBottom = 3;

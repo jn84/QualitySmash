@@ -137,9 +137,13 @@ namespace QualitySmash
         private void OnRenderedActiveMenu(object sender, RenderedActiveMenuEventArgs e)
         {
             if (!Context.IsWorldReady) return;
-            if (GetValidButtonSmashMenu() != null)
+            if (GetValidButtonSmashMenu() is ItemGrabMenu grabmenu)
                 if (config.EnableUISmashButtons)
+                {
                     handlerUiButtons.DrawButtons();
+                    handlerUiButtons.PopulateIds(grabmenu);
+                }
+
             if (GetValidKeybindSmashMenu() != null)
                 if (config.EnableSingleItemSmashKeybinds)
                     handlerKeybinds.DrawHoverText();
