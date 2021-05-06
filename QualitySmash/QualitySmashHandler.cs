@@ -161,6 +161,23 @@ namespace QualitySmash
                 DoSmash(menu, ModEntry.SmashType.Quality);
             }
         }
+        
+        private bool IsFiltered(Item item)
+        {
+            if (item == null || !(item is StardewValley.Object)) return true;
+            
+            if (config.IgnoreItemsQuality.Contains(item.ParentSheetIndex) ||
+                config.IgnoreItemsCategory.Contains(item.Category))
+                return true;
+
+            if (!config.IgnoreIridiumItemExceptions.Contains(item.ParentSheetIndex) &&
+                !config.IgnoreIridiumCategoryExceptions.Contains(item.Category))
+                if (config.IgnoreIridium && (item as StardewValley.Object)?.Quality == 4) return true;
+
+            if (config.IgnoreGold && (item as StardewValley.Object)?.Quality == 2) return true;
+
+            if (config.IgnoreSilver && (item as StardewValley.Object)?.Quality == 1) return true;
+        }
 
         private void DoSmash(ItemGrabMenu menu, ModEntry.SmashType smashType)
         {
@@ -169,13 +186,31 @@ namespace QualitySmash
             var containerInventory = menu.ItemsToGrabMenu.actualInventory;
 
             var itemsProcessed = new List<Item>();
-
-            for (var i = 0; i < containerInventory.Count; i++)
+            
+            if (smashType == ModEntry.SmashType.Quality) 
             {
-                if (containerInventory[i] == null || !(containerInventory[i] is StardewValley.Object))
-                    continue;
-                if (smashType == ModEntry.SmashType.Color)
+                var itemsToSmash = containerInventory.FindAll(item => !IsFiltered(item));
+                
+                if (itemsToSmash.Count > 0) 
                 {
+                    areItemsChanged = true;
+                    containerInventory.RemoveAll(item => !IsFiltered(item));
+                    itemsToSmash.ForEach(i1 => { 
+                        if (i1 is StardewValley.Object o) 
+                            o.Quality = itemsToSmash
+                                .FindAll(i2 => i2.ParentSheetIndex == i1.ParentSheetIndex)
+                                .Cast<StardewValley.Object>()
+                                .Min(i3 => i3.Quality);        
+                    });
+                    itemsProcessed = itemsToSmash;
+                }
+            } else if (smashType == ModEntry.SmashType.Color) 
+            {
+                for (var i = 0; i < containerInventory.Count; i++)
+                {
+                    if (containerInventory[i] == null || !(containerInventory[i] is StardewValley.Object))
+                        continue;
+
                     if (!(containerInventory[i] is ColoredObject c) ||
                         c.Category != -80 ||
                         config.IgnoreItemsColor.Contains(containerInventory[i].ParentSheetIndex))
@@ -189,35 +224,7 @@ namespace QualitySmash
 
                     containerInventory.RemoveAt(i);
                     i--;
-                }
-                else if (smashType == ModEntry.SmashType.Quality)
-                {
-                    if ((containerInventory[i] as StardewValley.Object)?.Quality == 0) continue;
-
-                    if (config.IgnoreItemsQuality.Contains(containerInventory[i].ParentSheetIndex) ||
-                        config.IgnoreItemsCategory.Contains(containerInventory[i].Category))
-                        continue;
-
-                    if (!config.IgnoreIridiumItemExceptions.Contains(containerInventory[i].ParentSheetIndex) &&
-                        !config.IgnoreIridiumCategoryExceptions.Contains(containerInventory[i].Category))
-                        if (config.IgnoreIridium && (containerInventory[i] as StardewValley.Object)?.Quality == 4) continue;
-
-                    if (config.IgnoreGold && (containerInventory[i] as StardewValley.Object)?.Quality == 2) continue;
-
-                    if (config.IgnoreSilver && (containerInventory[i] as StardewValley.Object)?.Quality == 1) continue;
-
-                    // Filtering complete 
-
-                    areItemsChanged = true;
-
-                    if (containerInventory[i] is StardewValley.Object o)
-                        o.Quality = 0;
-
-                    itemsProcessed.Add(containerInventory[i]);
-
-                    containerInventory.RemoveAt(i);
-                    i--;
-                }
+                } 
             }
 
             if (!areItemsChanged) return;
