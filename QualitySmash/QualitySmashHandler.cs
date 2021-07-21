@@ -5,6 +5,7 @@ using StardewValley;
 using StardewValley.Menus;
 using StardewValley.Objects;
 using System.Collections.Generic;
+using System.Linq;
 using StardewModdingAPI.Events;
 
 namespace QualitySmash
@@ -172,18 +173,18 @@ namespace QualitySmash
 
             if (!config.IgnoreIridiumItemExceptions.Contains(item.ParentSheetIndex) &&
                 !config.IgnoreIridiumCategoryExceptions.Contains(item.Category))
-                if (config.IgnoreIridium && (item as StardewValley.Object)?.Quality == 4) return true;
+                if (config.IgnoreIridium && ((StardewValley.Object) item)?.Quality == 4) return true;
 
-            if (config.IgnoreGold && (item as StardewValley.Object)?.Quality == 2) return true;
+            if (config.IgnoreGold && ((StardewValley.Object) item)?.Quality == 2) return true;
 
-            if (config.IgnoreSilver && (item as StardewValley.Object)?.Quality == 1) return true;
+            return config.IgnoreSilver && ((StardewValley.Object) item)?.Quality == 1;
         }
 
         private void DoSmash(ItemGrabMenu menu, ModEntry.SmashType smashType)
         {
             var areItemsChanged = false;
 
-            var containerInventory = menu.ItemsToGrabMenu.actualInventory;
+            var containerInventory = menu.ItemsToGrabMenu.actualInventory.ToList();
 
             var itemsProcessed = new List<Item>();
             
@@ -228,6 +229,10 @@ namespace QualitySmash
             }
 
             if (!areItemsChanged) return;
+
+            menu.ItemsToGrabMenu.actualInventory.Clear();
+            foreach (Item item in containerInventory)
+                menu.ItemsToGrabMenu.actualInventory.Add(item);
 
             // There's probably a simpler way to do this built into the game, but I don't see it.
             // Prime the container with some of each item
