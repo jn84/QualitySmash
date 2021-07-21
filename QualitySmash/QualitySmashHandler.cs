@@ -212,6 +212,25 @@ namespace QualitySmash
                     if (containerInventory[i] == null || !(containerInventory[i] is StardewValley.Object))
                         continue;
 
+
+                    if (config.EnableEggColorSmashing && containerInventory[i].Category == -5)
+                    {
+                        if (containerInventory[i].ParentSheetIndex == 180)
+                            containerInventory[i].ParentSheetIndex = 176;
+
+                        if (containerInventory[i].ParentSheetIndex == 182)
+                            containerInventory[i].ParentSheetIndex = 174;
+
+                        areItemsChanged = true;
+
+                        itemsProcessed.Add(containerInventory[i]);
+
+                        containerInventory.RemoveAt(i);
+                        i--;
+
+                        continue;
+                    }
+
                     if (!(containerInventory[i] is ColoredObject c) ||
                         c.Category != -80 ||
                         config.IgnoreItemsColor.Contains(containerInventory[i].ParentSheetIndex))

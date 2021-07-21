@@ -12,6 +12,8 @@ namespace QualitySmash
     {
         public bool EnableUISmashButtons { get; set; }
 
+        public bool EnableEggColorSmashing { get; set; }
+
         public bool EnableSingleItemSmashKeybinds { get; set; }
 
         public SButton ColorSmashKeybind { get; set; }
@@ -47,6 +49,8 @@ namespace QualitySmash
         public ModConfig()
         {
             this.EnableUISmashButtons = true;
+
+            this.EnableEggColorSmashing = true;
             
             this.EnableSingleItemSmashKeybinds = false;
 
