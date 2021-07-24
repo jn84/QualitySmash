@@ -15,9 +15,6 @@ namespace QualitySmash
         private string hoverTextColor;
         private string hoverTextQuality;
         private readonly ModEntry modEntry;
-        //private readonly ClickableTextureComponent buttonColor;
-        //private readonly ClickableTextureComponent buttonQuality;
-
         private readonly UiButtonHandler buttonHandler;
         private readonly Texture2D imageColor;
         private readonly Texture2D imageQuality;
@@ -41,44 +38,6 @@ namespace QualitySmash
 
             this.buttonHandler.AddButton(ModEntry.SmashType.Color, imageColor, new Rectangle(0, 0, 16, 16));
             this.buttonHandler.AddButton(ModEntry.SmashType.Quality, imageQuality, new Rectangle(0, 0, 16, 16));
-
-            //buttonColor = new ClickableTextureComponent(Rectangle.Empty, null, new Rectangle(0, 0, 16, 16), 4f)
-            //{
-            //    hoverText = modEntry.helper.Translation.Get("hoverTextColor"),
-            //    myID = 102906,
-            //    leftNeighborID = 27346,
-            //    downNeighborID = 102907,
-            //    //texture = this.imageColor
-            //};
-
-            //buttonQuality = new ClickableTextureComponent(Rectangle.Empty, null, new Rectangle(0, 0, 16, 16), 4f)
-            //{
-            //    hoverText = modEntry.helper.Translation.Get("hoverTextQuality"),
-            //    myID = 102907,
-            //    leftNeighborID = 12952,
-            //    upNeighborID = 102906,
-            //    //texture = this.imageQuality
-            //};
-        }
-
-        private void UpdateButtonPositions()
-        {
-            var menu = modEntry.GetValidButtonSmashMenu();
-
-            if (menu == null) 
-                return;
-
-            buttonHandler.UpdateBounds(menu);
-
-            //const int length = 64;
-            //const int positionFromBottom = 3;
-            //const int gapSize = 16;
-
-            //var screenX = menu.xPositionOnScreen + menu.width + gapSize + length;
-            //var screenY = menu.yPositionOnScreen + menu.height / 3 - (length * positionFromBottom) - (gapSize * (positionFromBottom - 1));
-
-            //buttonColor.bounds = new Rectangle(screenX, screenY, length, length);
-            //buttonQuality.bounds = new Rectangle(screenX, screenY + gapSize + length, length, length);
         }
 
         public void DrawButtons()
@@ -91,25 +50,7 @@ namespace QualitySmash
             buttonHandler.UpdateBounds(menu);
 
             buttonHandler.DrawButtons();
-            
-            //UpdateButtonPositions();
-
-            //buttonColor.texture = imageColor;
-            //buttonQuality.texture = imageQuality;
-
-            //buttonColor.draw(Game1.spriteBatch, Color.White, 0f, 0);
-            //buttonQuality.draw(Game1.spriteBatch, Color.White, 0f, 0);
-
-            //if (hoverTextColor != "")
-            //    IClickableMenu.drawHoverText(Game1.spriteBatch, "peepee", Game1.smallFont);
-
-            //if (hoverTextQuality != "")
-            //    IClickableMenu.drawHoverText(Game1.spriteBatch, "poopoo", Game1.smallFont);
-
-            //// Draws cursor over the GUI element
-            //Game1.spriteBatch.Draw(Game1.mouseCursors, new Vector2(Game1.getOldMouseX(), Game1.getOldMouseY()),
-            //Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, 0, 16, 16), Color.White, 0f, Vector2.Zero,
-            //4f + Game1.dialogueButtonScale / 150f, SpriteEffects.None, 0);
+           
         }
 
         internal void TryHover(float x, float y)
@@ -120,26 +61,6 @@ namespace QualitySmash
             {
                 buttonHandler.TryHover(x, y);
             }
-            //this.hoverTextColor = "";
-            //this.hoverTextQuality = "";
-            //var menu = modEntry.GetValidButtonSmashMenu();
-
-            //if (menu != null)
-            //{ 
-            //    buttonColor.tryHover((int)x, (int)y, 0.1f)
-            //    if (buttonColor.containsPoint((int)x, (int)y))
-            //    {
-            //        this.hoverTextColor = buttonColor.hoverText;
-            //        return true;
-            //    }
-
-            //    if (buttonQuality.containsPoint((int)x, (int)y))
-            //    {
-            //        this.hoverTextQuality = buttonQuality.hoverText;
-            //        return true;
-            //    }
-            //}
-            //return false;
         }
 
         internal void HandleClick(ButtonPressedEventArgs e)
@@ -164,18 +85,6 @@ namespace QualitySmash
 
             Game1.playSound("clubhit");
             DoSmash(menu, buttonClicked);
-
-            //if (buttonColor.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
-            //{
-            //    Game1.playSound("clubhit");
-            //    DoSmash(menu, ModEntry.SmashType.Color);
-            //}
-
-            //if (buttonQuality.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
-            //{
-            //    Game1.playSound("clubhit");
-            //    DoSmash(menu, ModEntry.SmashType.Quality);
-            //}
         }
         
         private bool IsFiltered(Item item)

@@ -52,10 +52,11 @@ namespace QualitySmash
                 {
                     button.UpdateHoverText(
                         modEntry.helper.Translation.Get(ModEntry.TranslationMapping[button.smashType]));
-                    button.TryHover((int)x, (int)y);
                 }
                 else
                     button.UpdateHoverText("");
+
+                button.TryHover((int)x, (int)y);
             }
         }
 

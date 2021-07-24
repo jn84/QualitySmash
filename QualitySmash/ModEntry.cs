@@ -22,7 +22,7 @@ namespace QualitySmash
             { SmashType.Quality, "hoverTextQuality" },
         };
 
-        private QualitySmashHandler handlerUiButtons;
+        private QualitySmashHandler qualitySmashHandler;
         private SingleSmashHandler handlerKeybinds;
         private ModConfig config;
 
@@ -36,7 +36,7 @@ namespace QualitySmash
             var buttonQuality = helper.Content.Load<Texture2D>("assets/buttonQuality.png");
 
             this.helper = helper;
-            this.handlerUiButtons = new QualitySmashHandler(this, this.config, buttonColor, buttonQuality);
+            this.qualitySmashHandler = new QualitySmashHandler(this, this.config, buttonColor, buttonQuality);
             this.handlerKeybinds = new SingleSmashHandler(this, this.config, buttonColor, buttonQuality);
 
             AddEvents(helper);
@@ -93,7 +93,7 @@ namespace QualitySmash
             var scaledMousePos = Game1.getMousePosition(true);
 
             if (config.EnableUISmashButtons)
-                handlerUiButtons.TryHover(scaledMousePos.X, scaledMousePos.Y);
+                qualitySmashHandler.TryHover(scaledMousePos.X, scaledMousePos.Y);
             if (config.EnableSingleItemSmashKeybinds)
                 handlerKeybinds.TryHover(scaledMousePos.X, scaledMousePos.Y);
         }
@@ -118,7 +118,7 @@ namespace QualitySmash
 
             if (config.EnableUISmashButtons && GetValidButtonSmashMenu() != null)
             {
-                handlerUiButtons.HandleClick(e);
+                qualitySmashHandler.HandleClick(e);
             }
 
             if (config.EnableSingleItemSmashKeybinds && GetValidKeybindSmashMenu() != null)
@@ -147,7 +147,7 @@ namespace QualitySmash
             if (!Context.IsWorldReady) return;
             if (GetValidButtonSmashMenu() is ItemGrabMenu grabmenu)
                 if (config.EnableUISmashButtons)
-                    handlerUiButtons.DrawButtons();
+                    qualitySmashHandler.DrawButtons();
 
             if (GetValidKeybindSmashMenu() != null)
                 if (config.EnableSingleItemSmashKeybinds)
