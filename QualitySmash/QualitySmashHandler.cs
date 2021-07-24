@@ -15,8 +15,10 @@ namespace QualitySmash
         private string hoverTextColor;
         private string hoverTextQuality;
         private readonly ModEntry modEntry;
-        private readonly ClickableTextureComponent buttonColor;
-        private readonly ClickableTextureComponent buttonQuality;
+        //private readonly ClickableTextureComponent buttonColor;
+        //private readonly ClickableTextureComponent buttonQuality;
+
+        private readonly UiButtonHandler buttonHandler;
         private readonly Texture2D imageColor;
         private readonly Texture2D imageQuality;
         private readonly ModConfig config;
@@ -34,105 +36,110 @@ namespace QualitySmash
             this.config = config;
             this.imageColor = imageColor;
             this.imageQuality = imageQuality;
-            buttonColor = new ClickableTextureComponent(Rectangle.Empty, null, new Rectangle(0, 0, 16, 16), 4f)
-            {
-                hoverText = modEntry.helper.Translation.Get("hoverTextColor"),
-                myID = 102906,
-                leftNeighborID = 27346,
-                downNeighborID = 102907,
-            };
 
-            buttonQuality = new ClickableTextureComponent(Rectangle.Empty, null, new Rectangle(0, 0, 16, 16), 4f)
-            {
-                hoverText = modEntry.helper.Translation.Get("hoverTextQuality"),
-                myID = 102907,
-                leftNeighborID = 12952,
-                upNeighborID = 102906,
-            };
-        }
+            this.buttonHandler = new UiButtonHandler(modEntry);
 
-        internal void PopulateIds(ItemGrabMenu menu)
-        {
+            this.buttonHandler.AddButton(ModEntry.SmashType.Color, imageColor, new Rectangle(0, 0, 16, 16));
+            this.buttonHandler.AddButton(ModEntry.SmashType.Quality, imageQuality, new Rectangle(0, 0, 16, 16));
 
-            if (menu.fillStacksButton != null)
-            {
-                buttonQuality.leftNeighborID = menu.fillStacksButton.myID;
-                menu.fillStacksButton.rightNeighborID = 102907;
-            }
+            //buttonColor = new ClickableTextureComponent(Rectangle.Empty, null, new Rectangle(0, 0, 16, 16), 4f)
+            //{
+            //    hoverText = modEntry.helper.Translation.Get("hoverTextColor"),
+            //    myID = 102906,
+            //    leftNeighborID = 27346,
+            //    downNeighborID = 102907,
+            //    //texture = this.imageColor
+            //};
 
-            if (menu.colorPickerToggleButton != null)
-            {
-                menu.colorPickerToggleButton.rightNeighborID = 102906;
-                buttonColor.leftNeighborID = menu.colorPickerToggleButton.myID;
-            }
+            //buttonQuality = new ClickableTextureComponent(Rectangle.Empty, null, new Rectangle(0, 0, 16, 16), 4f)
+            //{
+            //    hoverText = modEntry.helper.Translation.Get("hoverTextQuality"),
+            //    myID = 102907,
+            //    leftNeighborID = 12952,
+            //    upNeighborID = 102906,
+            //    //texture = this.imageQuality
+            //};
         }
 
         private void UpdateButtonPositions()
         {
-            var menu = Game1.activeClickableMenu;
+            var menu = modEntry.GetValidButtonSmashMenu();
 
             if (menu == null) 
                 return;
 
-            if (menu is ItemGrabMenu grabMenu)
-                PopulateIds(grabMenu);
+            buttonHandler.UpdateBounds(menu);
 
-            const int length = 64;
-            const int positionFromBottom = 3;
-            const int gapSize = 16;
+            //const int length = 64;
+            //const int positionFromBottom = 3;
+            //const int gapSize = 16;
 
-            var screenX = menu.xPositionOnScreen + menu.width + gapSize + length;
-            var screenY = menu.yPositionOnScreen + menu.height / 3 - (length * positionFromBottom) - (gapSize * (positionFromBottom - 1));
+            //var screenX = menu.xPositionOnScreen + menu.width + gapSize + length;
+            //var screenY = menu.yPositionOnScreen + menu.height / 3 - (length * positionFromBottom) - (gapSize * (positionFromBottom - 1));
 
-            buttonColor.bounds = new Rectangle(screenX, screenY, length, length);
-            buttonQuality.bounds = new Rectangle(screenX, screenY + gapSize + length, length, length);
+            //buttonColor.bounds = new Rectangle(screenX, screenY, length, length);
+            //buttonQuality.bounds = new Rectangle(screenX, screenY + gapSize + length, length, length);
         }
 
         public void DrawButtons()
         {
-            UpdateButtonPositions();
+            var menu = modEntry.GetValidButtonSmashMenu();
 
-            buttonColor.texture = imageColor;
-            buttonQuality.texture = imageQuality;
+            if (menu == null)
+                return;
 
-            buttonColor.draw(Game1.spriteBatch, Color.White, 0f, 0);
-            buttonQuality.draw(Game1.spriteBatch, Color.White, 0f, 0);
+            buttonHandler.UpdateBounds(menu);
 
-            if (hoverTextColor != "")
-                IClickableMenu.drawHoverText(Game1.spriteBatch, hoverTextColor, Game1.smallFont);
+            buttonHandler.DrawButtons();
+            
+            //UpdateButtonPositions();
 
-            if (hoverTextQuality != "")
-                IClickableMenu.drawHoverText(Game1.spriteBatch, hoverTextQuality, Game1.smallFont);
+            //buttonColor.texture = imageColor;
+            //buttonQuality.texture = imageQuality;
 
-            // Draws cursor over the GUI element
-            Game1.spriteBatch.Draw(Game1.mouseCursors, new Vector2(Game1.getOldMouseX(), Game1.getOldMouseY()),
-            Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, 0, 16, 16), Color.White, 0f, Vector2.Zero,
-            4f + Game1.dialogueButtonScale / 150f, SpriteEffects.None, 0);
+            //buttonColor.draw(Game1.spriteBatch, Color.White, 0f, 0);
+            //buttonQuality.draw(Game1.spriteBatch, Color.White, 0f, 0);
+
+            //if (hoverTextColor != "")
+            //    IClickableMenu.drawHoverText(Game1.spriteBatch, "peepee", Game1.smallFont);
+
+            //if (hoverTextQuality != "")
+            //    IClickableMenu.drawHoverText(Game1.spriteBatch, "poopoo", Game1.smallFont);
+
+            //// Draws cursor over the GUI element
+            //Game1.spriteBatch.Draw(Game1.mouseCursors, new Vector2(Game1.getOldMouseX(), Game1.getOldMouseY()),
+            //Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, 0, 16, 16), Color.White, 0f, Vector2.Zero,
+            //4f + Game1.dialogueButtonScale / 150f, SpriteEffects.None, 0);
         }
 
-        internal bool TryHover(float x, float y)
+        internal void TryHover(float x, float y)
         {
-            this.hoverTextColor = "";
-            this.hoverTextQuality = "";
             var menu = modEntry.GetValidButtonSmashMenu();
 
             if (menu != null)
-            { 
-                buttonColor.tryHover((int)x, (int)y, 0.25f);
-                if (buttonColor.containsPoint((int)x, (int)y))
-                {
-                    this.hoverTextColor = buttonColor.hoverText;
-                    return true;
-                }
-
-                buttonQuality.tryHover((int)x, (int)y, 0.25f);
-                if (buttonQuality.containsPoint((int)x, (int)y))
-                {
-                    this.hoverTextQuality = buttonQuality.hoverText;
-                    return true;
-                }
+            {
+                buttonHandler.TryHover(x, y);
             }
-            return false;
+            //this.hoverTextColor = "";
+            //this.hoverTextQuality = "";
+            //var menu = modEntry.GetValidButtonSmashMenu();
+
+            //if (menu != null)
+            //{ 
+            //    buttonColor.tryHover((int)x, (int)y, 0.1f)
+            //    if (buttonColor.containsPoint((int)x, (int)y))
+            //    {
+            //        this.hoverTextColor = buttonColor.hoverText;
+            //        return true;
+            //    }
+
+            //    if (buttonQuality.containsPoint((int)x, (int)y))
+            //    {
+            //        this.hoverTextQuality = buttonQuality.hoverText;
+            //        return true;
+            //    }
+            //}
+            //return false;
         }
 
         internal void HandleClick(ButtonPressedEventArgs e)
@@ -150,17 +157,25 @@ namespace QualitySmash
             if (menu == null)
                 return;
 
-            if (buttonColor.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
-            {
-                Game1.playSound("clubhit");
-                DoSmash(menu, ModEntry.SmashType.Color);
-            }
+            var buttonClicked = buttonHandler.GetButtonClicked((int)cursorPos.X, (int)cursorPos.Y);
 
-            if (buttonQuality.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
-            {
-                Game1.playSound("clubhit");
-                DoSmash(menu, ModEntry.SmashType.Quality);
-            }
+            if (buttonClicked == ModEntry.SmashType.None)
+                return;
+
+            Game1.playSound("clubhit");
+            DoSmash(menu, buttonClicked);
+
+            //if (buttonColor.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
+            //{
+            //    Game1.playSound("clubhit");
+            //    DoSmash(menu, ModEntry.SmashType.Color);
+            //}
+
+            //if (buttonQuality.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
+            //{
+            //    Game1.playSound("clubhit");
+            //    DoSmash(menu, ModEntry.SmashType.Quality);
+            //}
         }
         
         private bool IsFiltered(Item item)
@@ -177,7 +192,9 @@ namespace QualitySmash
 
             if (config.IgnoreGold && ((StardewValley.Object) item)?.Quality == 2) return true;
 
-            return config.IgnoreSilver && ((StardewValley.Object) item)?.Quality == 1;
+            if (config.IgnoreSilver && ((StardewValley.Object) item)?.Quality == 1) return true;
+
+            return false;
         }
 
         private void DoSmash(ItemGrabMenu menu, ModEntry.SmashType smashType)
@@ -188,10 +205,10 @@ namespace QualitySmash
 
             var itemsProcessed = new List<Item>();
             
-            if (smashType == ModEntry.SmashType.Quality) 
+            if (smashType == ModEntry.SmashType.Quality)
             {
                 var itemsToSmash = containerInventory.FindAll(item => !IsFiltered(item));
-                
+
                 if (itemsToSmash.Count > 0) 
                 {
                     areItemsChanged = true;

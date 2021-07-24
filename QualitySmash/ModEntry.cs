@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Graphics;
+﻿using System.Collections.Generic;
+using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -11,8 +12,15 @@ namespace QualitySmash
         internal enum SmashType
         {
             Color,
-            Quality
+            Quality,
+            None
         }
+
+        internal static Dictionary<SmashType, string> TranslationMapping = new Dictionary<SmashType, string>()
+        {
+            { SmashType.Color, "hoverTextColor" },
+            { SmashType.Quality, "hoverTextQuality" },
+        };
 
         private QualitySmashHandler handlerUiButtons;
         private SingleSmashHandler handlerKeybinds;
@@ -139,10 +147,7 @@ namespace QualitySmash
             if (!Context.IsWorldReady) return;
             if (GetValidButtonSmashMenu() is ItemGrabMenu grabmenu)
                 if (config.EnableUISmashButtons)
-                {
                     handlerUiButtons.DrawButtons();
-                    handlerUiButtons.PopulateIds(grabmenu);
-                }
 
             if (GetValidKeybindSmashMenu() != null)
                 if (config.EnableSingleItemSmashKeybinds)
