@@ -64,7 +64,7 @@ namespace QualitySmash
         /// <param name="y"></param>
         public void TryHover(int x, int y)
         {
-            clickable.tryHover(x, y, 0.1f);
+            clickable.tryHover(x, y, 0.4f);
         }
         
     }

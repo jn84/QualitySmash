@@ -22,7 +22,7 @@ namespace QualitySmash
             { SmashType.Quality, "hoverTextQuality" },
         };
 
-        private QualitySmashHandler qualitySmashHandler;
+        private ButtonSmashHandler qualitySmashHandler;
         private SingleSmashHandler handlerKeybinds;
         private ModConfig config;
 
@@ -36,7 +36,7 @@ namespace QualitySmash
             var buttonQuality = helper.Content.Load<Texture2D>("assets/buttonQuality.png");
 
             this.helper = helper;
-            this.qualitySmashHandler = new QualitySmashHandler(this, this.config, buttonColor, buttonQuality);
+            this.qualitySmashHandler = new ButtonSmashHandler(this, this.config, buttonColor, buttonQuality);
             this.handlerKeybinds = new SingleSmashHandler(this, this.config, buttonColor, buttonQuality);
 
             AddEvents(helper);

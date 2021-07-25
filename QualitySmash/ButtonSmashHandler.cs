@@ -10,10 +10,8 @@ using StardewModdingAPI.Events;
 
 namespace QualitySmash
 {
-    internal class QualitySmashHandler
+    internal class ButtonSmashHandler
     {
-        private string hoverTextColor;
-        private string hoverTextQuality;
         private readonly ModEntry modEntry;
         private readonly UiButtonHandler buttonHandler;
         private readonly Texture2D imageColor;
@@ -27,7 +25,7 @@ namespace QualitySmash
         /// <param name="config">The mods config</param>
         /// <param name="imageColor">Button texture for the color smash button</param>
         /// <param name="imageQuality">Button texture for the quality smash button</param>
-        public QualitySmashHandler(ModEntry modEntry, ModConfig config, Texture2D imageColor, Texture2D imageQuality)
+        public ButtonSmashHandler(ModEntry modEntry, ModConfig config, Texture2D imageColor, Texture2D imageQuality)
         {
             this.modEntry = modEntry;
             this.config = config;
