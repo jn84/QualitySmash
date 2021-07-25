@@ -14,8 +14,6 @@ namespace QualitySmash
     {
         private readonly ModEntry modEntry;
         private readonly UiButtonHandler buttonHandler;
-        private readonly Texture2D imageColor;
-        private readonly Texture2D imageQuality;
         private readonly ModConfig config;
 
         /// <summary>
@@ -25,17 +23,22 @@ namespace QualitySmash
         /// <param name="config">The mods config</param>
         /// <param name="imageColor">Button texture for the color smash button</param>
         /// <param name="imageQuality">Button texture for the quality smash button</param>
-        public ButtonSmashHandler(ModEntry modEntry, ModConfig config, Texture2D imageColor, Texture2D imageQuality)
+        public ButtonSmashHandler(ModEntry modEntry, ModConfig config)
         {
             this.modEntry = modEntry;
             this.config = config;
-            this.imageColor = imageColor;
-            this.imageQuality = imageQuality;
 
             this.buttonHandler = new UiButtonHandler(modEntry);
+        }
 
-            this.buttonHandler.AddButton(ModEntry.SmashType.Color, imageColor, new Rectangle(0, 0, 16, 16));
-            this.buttonHandler.AddButton(ModEntry.SmashType.Quality, imageQuality, new Rectangle(0, 0, 16, 16));
+        public void AddButton(ModEntry.SmashType smashType, Texture2D image, Rectangle clickableArea)
+        {
+            this.buttonHandler.AddButton(smashType, image, clickableArea);
+        }
+
+        public void RemoveButton(ModEntry.SmashType smashType)
+        {
+            this.buttonHandler.RemoveButton(smashType);
         }
 
         public void DrawButtons()

@@ -28,11 +28,27 @@ namespace QualitySmash
 
         public void AddButton(ModEntry.SmashType smashType, Texture2D texture, Rectangle clickableArea)
         {
-            QSButton button = new QSButton(smashType, texture, clickableArea);
+            // Make sure button doesn't already exist
+            if (qsButtons.Any(button => button.smashType == smashType))
+                return;
 
-            button.UpdateHoverText("");
+            QSButton newButton = new QSButton(smashType, texture, clickableArea);
 
-            qsButtons.Add(button);
+            newButton.UpdateHoverText("");
+
+            qsButtons.Add(newButton);
+        }
+
+        public void RemoveButton(ModEntry.SmashType smashType)
+        {
+            for (int i = 0; i < qsButtons.Count; i++)
+            {
+                if (qsButtons[i].smashType == smashType)
+                {
+                    qsButtons.RemoveAt(i);
+                    return;
+                }
+            }
         }
 
         public void UpdateBounds(IClickableMenu menu)
