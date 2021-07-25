@@ -5,19 +5,15 @@ using StardewValley;
 using StardewValley.Menus;
 using StardewValley.Objects;
 using System.Collections.Generic;
+using System.Linq;
 using StardewModdingAPI.Events;
 
 namespace QualitySmash
 {
-    internal class QualitySmashHandler
+    internal class ButtonSmashHandler
     {
-        private string hoverTextColor;
-        private string hoverTextQuality;
         private readonly ModEntry modEntry;
-        private readonly ClickableTextureComponent buttonColor;
-        private readonly ClickableTextureComponent buttonQuality;
-        private readonly Texture2D imageColor;
-        private readonly Texture2D imageQuality;
+        private readonly UiButtonHandler buttonHandler;
         private readonly ModConfig config;
 
         /// <summary>
@@ -27,111 +23,45 @@ namespace QualitySmash
         /// <param name="config">The mods config</param>
         /// <param name="imageColor">Button texture for the color smash button</param>
         /// <param name="imageQuality">Button texture for the quality smash button</param>
-        public QualitySmashHandler(ModEntry modEntry, ModConfig config, Texture2D imageColor, Texture2D imageQuality)
+        public ButtonSmashHandler(ModEntry modEntry, ModConfig config)
         {
             this.modEntry = modEntry;
             this.config = config;
-            this.imageColor = imageColor;
-            this.imageQuality = imageQuality;
-            buttonColor = new ClickableTextureComponent(Rectangle.Empty, null, new Rectangle(0, 0, 16, 16), 4f)
-            {
-                hoverText = modEntry.helper.Translation.Get("hoverTextColor"),
-                myID = 102906,
-                leftNeighborID = 27346,
-                downNeighborID = 102907,
-            };
 
-            buttonQuality = new ClickableTextureComponent(Rectangle.Empty, null, new Rectangle(0, 0, 16, 16), 4f)
-            {
-                hoverText = modEntry.helper.Translation.Get("hoverTextQuality"),
-                myID = 102907,
-                leftNeighborID = 12952,
-                upNeighborID = 102906,
-            };
+            this.buttonHandler = new UiButtonHandler(modEntry);
         }
 
-        internal void PopulateIds(ItemGrabMenu menu)
+        public void AddButton(ModEntry.SmashType smashType, Texture2D image, Rectangle clickableArea)
         {
-
-            if (menu.fillStacksButton != null)
-            {
-                buttonQuality.leftNeighborID = menu.fillStacksButton.myID;
-                menu.fillStacksButton.rightNeighborID = 102907;
-            }
-
-            if (menu.colorPickerToggleButton != null)
-            {
-                menu.colorPickerToggleButton.rightNeighborID = 102906;
-                buttonColor.leftNeighborID = menu.colorPickerToggleButton.myID;
-            }
+            this.buttonHandler.AddButton(smashType, image, clickableArea);
         }
 
-        private void UpdateButtonPositions()
+        public void RemoveButton(ModEntry.SmashType smashType)
         {
-            var menu = Game1.activeClickableMenu;
-
-            if (menu == null) 
-                return;
-
-            if (menu is ItemGrabMenu grabMenu)
-                PopulateIds(grabMenu);
-
-            const int length = 64;
-            const int positionFromBottom = 3;
-            const int gapSize = 16;
-
-            var screenX = menu.xPositionOnScreen + menu.width + gapSize + length;
-            var screenY = menu.yPositionOnScreen + menu.height / 3 - (length * positionFromBottom) - (gapSize * (positionFromBottom - 1));
-
-            buttonColor.bounds = new Rectangle(screenX, screenY, length, length);
-            buttonQuality.bounds = new Rectangle(screenX, screenY + gapSize + length, length, length);
+            this.buttonHandler.RemoveButton(smashType);
         }
 
         public void DrawButtons()
         {
-            UpdateButtonPositions();
+            var menu = modEntry.GetValidButtonSmashMenu();
 
-            buttonColor.texture = imageColor;
-            buttonQuality.texture = imageQuality;
+            if (menu == null)
+                return;
 
-            buttonColor.draw(Game1.spriteBatch, Color.White, 0f, 0);
-            buttonQuality.draw(Game1.spriteBatch, Color.White, 0f, 0);
+            buttonHandler.UpdateBounds(menu);
 
-            if (hoverTextColor != "")
-                IClickableMenu.drawHoverText(Game1.spriteBatch, hoverTextColor, Game1.smallFont);
-
-            if (hoverTextQuality != "")
-                IClickableMenu.drawHoverText(Game1.spriteBatch, hoverTextQuality, Game1.smallFont);
-
-            // Draws cursor over the GUI element
-            Game1.spriteBatch.Draw(Game1.mouseCursors, new Vector2(Game1.getOldMouseX(), Game1.getOldMouseY()),
-            Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, 0, 16, 16), Color.White, 0f, Vector2.Zero,
-            4f + Game1.dialogueButtonScale / 150f, SpriteEffects.None, 0);
+            buttonHandler.DrawButtons();
+           
         }
 
-        internal bool TryHover(float x, float y)
+        internal void TryHover(float x, float y)
         {
-            this.hoverTextColor = "";
-            this.hoverTextQuality = "";
             var menu = modEntry.GetValidButtonSmashMenu();
 
             if (menu != null)
-            { 
-                buttonColor.tryHover((int)x, (int)y, 0.25f);
-                if (buttonColor.containsPoint((int)x, (int)y))
-                {
-                    this.hoverTextColor = buttonColor.hoverText;
-                    return true;
-                }
-
-                buttonQuality.tryHover((int)x, (int)y, 0.25f);
-                if (buttonQuality.containsPoint((int)x, (int)y))
-                {
-                    this.hoverTextQuality = buttonQuality.hoverText;
-                    return true;
-                }
+            {
+                buttonHandler.TryHover(x, y);
             }
-            return false;
         }
 
         internal void HandleClick(ButtonPressedEventArgs e)
@@ -149,33 +79,85 @@ namespace QualitySmash
             if (menu == null)
                 return;
 
-            if (buttonColor.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
-            {
-                Game1.playSound("clubhit");
-                DoSmash(menu, ModEntry.SmashType.Color);
-            }
+            var buttonClicked = buttonHandler.GetButtonClicked((int)cursorPos.X, (int)cursorPos.Y);
 
-            if (buttonQuality.containsPoint((int)cursorPos.X, (int)cursorPos.Y))
-            {
-                Game1.playSound("clubhit");
-                DoSmash(menu, ModEntry.SmashType.Quality);
-            }
+            if (buttonClicked == ModEntry.SmashType.None)
+                return;
+
+            Game1.playSound("clubhit");
+            DoSmash(menu, buttonClicked);
+        }
+        
+        private bool IsFiltered(Item item)
+        {
+            if (item == null || !(item is StardewValley.Object)) return true;
+            
+            if (config.IgnoreItemsQuality.Contains(item.ParentSheetIndex) ||
+                config.IgnoreItemsCategory.Contains(item.Category))
+                return true;
+
+            if (!config.IgnoreIridiumItemExceptions.Contains(item.ParentSheetIndex) &&
+                !config.IgnoreIridiumCategoryExceptions.Contains(item.Category))
+                if (config.IgnoreIridium && ((StardewValley.Object) item)?.Quality == 4) return true;
+
+            if (config.IgnoreGold && ((StardewValley.Object) item)?.Quality == 2) return true;
+
+            if (config.IgnoreSilver && ((StardewValley.Object) item)?.Quality == 1) return true;
+
+            return false;
         }
 
         private void DoSmash(ItemGrabMenu menu, ModEntry.SmashType smashType)
         {
             var areItemsChanged = false;
 
-            var containerInventory = menu.ItemsToGrabMenu.actualInventory;
+            var containerInventory = menu.ItemsToGrabMenu.actualInventory.ToList();
 
             var itemsProcessed = new List<Item>();
-
-            for (var i = 0; i < containerInventory.Count; i++)
+            
+            if (smashType == ModEntry.SmashType.Quality)
             {
-                if (containerInventory[i] == null || !(containerInventory[i] is StardewValley.Object))
-                    continue;
-                if (smashType == ModEntry.SmashType.Color)
+                var itemsToSmash = containerInventory.FindAll(item => !IsFiltered(item));
+
+                if (itemsToSmash.Count > 0) 
                 {
+                    areItemsChanged = true;
+                    containerInventory.RemoveAll(item => !IsFiltered(item));
+                    itemsToSmash.ForEach(i1 => { 
+                        if (i1 is StardewValley.Object o) 
+                            o.Quality = itemsToSmash
+                                .FindAll(i2 => i2.ParentSheetIndex == i1.ParentSheetIndex)
+                                .Cast<StardewValley.Object>()
+                                .Min(i3 => i3.Quality);        
+                    });
+                    itemsProcessed = itemsToSmash;
+                }
+            } else if (smashType == ModEntry.SmashType.Color) 
+            {
+                for (var i = 0; i < containerInventory.Count; i++)
+                {
+                    if (containerInventory[i] == null || !(containerInventory[i] is StardewValley.Object))
+                        continue;
+
+
+                    if (config.EnableEggColorSmashing && containerInventory[i].Category == -5)
+                    {
+                        if (containerInventory[i].ParentSheetIndex == 180)
+                            containerInventory[i].ParentSheetIndex = 176;
+
+                        if (containerInventory[i].ParentSheetIndex == 182)
+                            containerInventory[i].ParentSheetIndex = 174;
+
+                        areItemsChanged = true;
+
+                        itemsProcessed.Add(containerInventory[i]);
+
+                        containerInventory.RemoveAt(i);
+                        i--;
+
+                        continue;
+                    }
+
                     if (!(containerInventory[i] is ColoredObject c) ||
                         c.Category != -80 ||
                         config.IgnoreItemsColor.Contains(containerInventory[i].ParentSheetIndex))
@@ -189,38 +171,14 @@ namespace QualitySmash
 
                     containerInventory.RemoveAt(i);
                     i--;
-                }
-                else if (smashType == ModEntry.SmashType.Quality)
-                {
-                    if ((containerInventory[i] as StardewValley.Object)?.Quality == 0) continue;
-
-                    if (config.IgnoreItemsQuality.Contains(containerInventory[i].ParentSheetIndex) ||
-                        config.IgnoreItemsCategory.Contains(containerInventory[i].Category))
-                        continue;
-
-                    if (!config.IgnoreIridiumItemExceptions.Contains(containerInventory[i].ParentSheetIndex) &&
-                        !config.IgnoreIridiumCategoryExceptions.Contains(containerInventory[i].Category))
-                        if (config.IgnoreIridium && (containerInventory[i] as StardewValley.Object)?.Quality == 4) continue;
-
-                    if (config.IgnoreGold && (containerInventory[i] as StardewValley.Object)?.Quality == 2) continue;
-
-                    if (config.IgnoreSilver && (containerInventory[i] as StardewValley.Object)?.Quality == 1) continue;
-
-                    // Filtering complete 
-
-                    areItemsChanged = true;
-
-                    if (containerInventory[i] is StardewValley.Object o)
-                        o.Quality = 0;
-
-                    itemsProcessed.Add(containerInventory[i]);
-
-                    containerInventory.RemoveAt(i);
-                    i--;
-                }
+                } 
             }
 
             if (!areItemsChanged) return;
+
+            menu.ItemsToGrabMenu.actualInventory.Clear();
+            foreach (Item item in containerInventory)
+                menu.ItemsToGrabMenu.actualInventory.Add(item);
 
             // There's probably a simpler way to do this built into the game, but I don't see it.
             // Prime the container with some of each item
