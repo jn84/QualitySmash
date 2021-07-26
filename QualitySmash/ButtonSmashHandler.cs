@@ -91,6 +91,9 @@ namespace QualitySmash
         private bool IsFiltered(Item item)
         {
             if (item == null || !(item is StardewValley.Object)) return true;
+
+            if (item.maximumStackSize() <= 1)
+                return true;
             
             if (config.IgnoreItemsQuality.Contains(item.ParentSheetIndex) ||
                 config.IgnoreItemsCategory.Contains(item.Category))
