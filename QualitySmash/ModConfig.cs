@@ -27,28 +27,28 @@ namespace QualitySmash
 
         public string ItemIDReference { get; set; }
         
-        public List<string> IgnoreIridiumDescription { get; }
+        public List<string> IgnoreIridiumDescription { get; set; }
         public bool IgnoreIridium { get; set; }
 
-        public List<string> IgnoreIridiumItemExceptionsDescription { get; }
+        public List<string> IgnoreIridiumItemExceptionsDescription { get; set; }
         public List<int> IgnoreIridiumItemExceptions { get; set; }
 
-        public List<string> IgnoreIridiumCategoryExceptionsDescription { get; }
+        public List<string> IgnoreIridiumCategoryExceptionsDescription { get; set; }
         public List<int> IgnoreIridiumCategoryExceptions { get; set; }
 
         public List<string> IgnoreGoldDescription { get; set; }
         public bool IgnoreGold { get; set; }
 
-        public List<string> IgnoreSilverDescription { get; }
+        public List<string> IgnoreSilverDescription { get; set; }
         public bool IgnoreSilver { get; set; }
 
-        public List<string> IgnoreItemsColorDescription { get; }
+        public List<string> IgnoreItemsColorDescription { get; set; }
         public List<int> IgnoreItemsColor { get; set; }
 
-        public List<string> IgnoreItemsQualityDescription { get; }
+        public List<string> IgnoreItemsQualityDescription { get; set; }
         public List<int> IgnoreItemsQuality { get; set; }
 
-        public List<string> IgnoreItemsCategoryDescription { get; }
+        public List<string> IgnoreItemsCategoryDescription { get; set; }
         public List<int> IgnoreItemsCategory { get; set; }
 
         public ModConfig()
