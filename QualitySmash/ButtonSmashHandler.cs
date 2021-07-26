@@ -94,7 +94,7 @@ namespace QualitySmash
 
             if (item.maximumStackSize() <= 1)
                 return true;
-            
+
             if (config.IgnoreItemsQuality.Contains(item.ParentSheetIndex) ||
                 config.IgnoreItemsCategory.Contains(item.Category))
                 return true;
