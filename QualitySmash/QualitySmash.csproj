@@ -67,6 +67,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IGenericModConfigMenuApi.cs" />
     <Compile Include="ModConfig.cs" />
     <Compile Include="ModEntry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -83,6 +84,8 @@
   <ItemGroup>
     <Content Include="assets\buttonColor.png" />
     <Content Include="assets\buttonQuality.png" />
+    <Content Include="assets\CategoryIDs.txt" />
+    <Content Include="assets\ItemIDs.txt" />
     <Content Include="docs\Categories.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
