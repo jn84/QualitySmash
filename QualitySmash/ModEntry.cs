@@ -68,7 +68,7 @@ namespace QualitySmash
 
             // Populate Item ID dictionaries for use with GMCM
 
-            using (StreamReader fileStream = new StreamReader("assets/ItemIDs.txt"))
+            using (StreamReader fileStream = new StreamReader("Mods/QualitySmash/assets/ItemIDs.txt"))
             {
                 string line = fileStream.ReadLine();
 
@@ -90,7 +90,7 @@ namespace QualitySmash
 
             // Populate Category ID dictionaries for use with GMCM
 
-            using (StreamReader fileStream = new StreamReader("assets/CategoryIDs.txt"))
+            using (StreamReader fileStream = new StreamReader("Mods/QualitySmash/assets/CategoryIDs.txt"))
             {
                 string line = fileStream.ReadLine();
 
@@ -117,6 +117,8 @@ namespace QualitySmash
             helper.Events.Input.ButtonReleased += OnButtonReleased;
             helper.Events.Input.CursorMoved += OnCursorMoved;
         }
+
+
 
         /// <summary>
         /// Gets the ItemGrabMenu if it's from a fridge or chest
@@ -186,7 +188,7 @@ namespace QualitySmash
             // add some Config options
             api.RegisterSimpleOption(
                 mod: this.ModManifest,
-                optionName: "Enable UI Buttons",
+                optionName: "1234567890123456789012345678901234567890",
                 optionDesc: "Show the color and quality smash buttons in the user interface",
                 optionGet: () => this.Config.EnableUISmashButtons,
                 optionSet: value => this.Config.EnableUISmashButtons = value
@@ -240,8 +242,8 @@ namespace QualitySmash
                 mod: this.ModManifest,
                 optionName: "Quality Smash Keybind",
                 optionDesc: "Button to hold when you wish to quality smash a single item",
-                optionGet: () => this.Config.ColorSmashKeybind,
-                optionSet: (SButton val) => this.Config.ColorSmashKeybind = val
+                optionGet: () => this.Config.QualitySmashKeybind,
+                optionSet: (SButton val) => this.Config.QualitySmashKeybind = val
             );
 
             // Filters
@@ -269,6 +271,20 @@ namespace QualitySmash
                 optionGet: () => this.Config.IgnoreSilver,
                 optionSet: value => this.Config.IgnoreSilver = value
             );
+
+            api.RegisterSimpleOption(
+                mod: this.ModManifest, 
+                optionName: "Ignore Items", 
+                optionDesc: "Items listed here will not be affected when pressing the Quality Smash button. Comma separated. Can be either item IDs or item name (as displayed in game)", 
+                optionGet:() => Helpers.GetNameString(Config.IgnoreItemsQuality, itemNameDictionary), // Parse the config and create comma delimited string of item names
+                optionSet: (string val) => Config.IgnoreItemsQuality = Helpers.GetIdList(val, itemIDDictionary)
+            ); // Convert the text box text (strings or ints) into a List<int> of item IDs
+
+            api.StartNewPage(this.ModManifest, "Test Page");
+
+
+
+
         }
 
         //Attempt to smooth out button animations
