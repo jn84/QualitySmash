@@ -7,6 +7,7 @@ using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
+using StardewValley.Tools;
 
 namespace QualitySmash
 {
@@ -30,10 +31,9 @@ namespace QualitySmash
         private ModConfig Config;
 
         // For GenericModConfigMenu
-        private Dictionary<int, string> itemNameDictionary;
-        private Dictionary<string, int> itemIDDictionary;
-        private Dictionary<int, string> categoryNameDictionary;
-        private Dictionary<string, int> categoryIDDictionary;
+        private Dictionary<int, string> itemDictionary;
+        private Dictionary<int, string> coloredItemDictionary;
+        private Dictionary<int, string> categoryDictionary;
 
         internal IModHelper helper;
 
@@ -44,7 +44,7 @@ namespace QualitySmash
             var buttonColor = helper.Content.Load<Texture2D>("assets/buttonColor.png");
             var buttonQuality = helper.Content.Load<Texture2D>("assets/buttonQuality.png");
 
-            PopulateIDReferences();
+            PopulateIdReferences();
 
             this.buttonSmashHandler = new ButtonSmashHandler(this, this.Config);
 
@@ -61,12 +61,10 @@ namespace QualitySmash
             AddEvents(helper);
         }
 
-        private void PopulateIDReferences()
+        // For use with generic mod config menu to display item/category names, but still be compatible with original config structure
+        private void PopulateIdReferences()
         {
-            itemNameDictionary = new Dictionary<int, string>();
-            itemIDDictionary = new Dictionary<string, int>();
-
-            // Populate Item ID dictionaries for use with GMCM
+            itemDictionary = new Dictionary<int, string>();
 
             using (StreamReader fileStream = new StreamReader("Mods/QualitySmash/assets/ItemIDs.txt"))
             {
@@ -78,17 +76,31 @@ namespace QualitySmash
                     set[0] = set[0].Trim();
                     set[1] = set[1].Trim();
 
-                    itemNameDictionary.Add(int.Parse(set[1]), set[0]);
-                    itemIDDictionary.Add(set[0], int.Parse(set[1]));
+                    itemDictionary.Add(int.Parse(set[1]), set[0]);
 
                     line = fileStream.ReadLine();
                 }
             }
 
-            categoryNameDictionary = new Dictionary<int, string>();
-            categoryIDDictionary = new Dictionary<string, int>();
+            coloredItemDictionary = new Dictionary<int, string>();
 
-            // Populate Category ID dictionaries for use with GMCM
+            using (StreamReader fileStream = new StreamReader("Mods/QualitySmash/assets/ColoredItemIDs.txt"))
+            {
+                string line = fileStream.ReadLine();
+
+                while (line != null)
+                {
+                    string[] set = line.Split(',');
+                    set[0] = set[0].Trim();
+                    set[1] = set[1].Trim();
+
+                    coloredItemDictionary.Add(int.Parse(set[1]), set[0]);
+
+                    line = fileStream.ReadLine();
+                }
+            }
+
+            categoryDictionary = new Dictionary<int, string>();
 
             using (StreamReader fileStream = new StreamReader("Mods/QualitySmash/assets/CategoryIDs.txt"))
             {
@@ -100,8 +112,7 @@ namespace QualitySmash
                     set[0] = set[0].Trim();
                     set[1] = set[1].Trim();
 
-                    categoryNameDictionary.Add(int.Parse(set[0]), set[1]);
-                    categoryIDDictionary.Add(set[1], int.Parse(set[0]));
+                    categoryDictionary.Add(int.Parse(set[1]), set[0]);
 
                     line = fileStream.ReadLine();
                 }
@@ -182,13 +193,11 @@ namespace QualitySmash
                 saveToFile: () => this.Helper.WriteConfig(this.Config)
             );
 
-            // let players configure your mod in-game (instead of just from the title screen)
             api.SetDefaultIngameOptinValue(this.ModManifest, true);
-
             // add some Config options
             api.RegisterSimpleOption(
                 mod: this.ModManifest,
-                optionName: "1234567890123456789012345678901234567890",
+                optionName: "Show UI Smash Buttons",
                 optionDesc: "Show the color and quality smash buttons in the user interface",
                 optionGet: () => this.Config.EnableUISmashButtons,
                 optionSet: value => this.Config.EnableUISmashButtons = value
@@ -199,26 +208,50 @@ namespace QualitySmash
                 optionName: "Enable Color Smash UI Button",
                 optionDesc: "Show the Color Smash button in the user interface. Requires \"Enable UI Buttons\" be enabled.",
                 optionGet: () => this.Config.EnableUIColorSmashButton,
-                optionSet: value => this.Config.EnableUIColorSmashButton = value
-            );
+                optionSet: value =>
+                {
+                    this.Config.EnableUIColorSmashButton = value;
+                    if (!value)
+                        this.buttonSmashHandler.RemoveButton(ModEntry.SmashType.Color);
+                    else
+                        this.buttonSmashHandler.AddButton(ModEntry.SmashType.Color, helper.Content.Load<Texture2D>("assets/buttonColor.png"), new Rectangle(0, 0, 16, 16));
+                });
 
             api.RegisterSimpleOption(
                 mod: this.ModManifest,
                 optionName: "Enable Quality Smash UI Button",
                 optionDesc: "Show the Quality Smash button in the user interface. Requires \"Enable UI Buttons\" be enabled.",
                 optionGet: () => this.Config.EnableUIQualitySmashButton,
-                optionSet: value => this.Config.EnableUIQualitySmashButton = value
-            );
-
+                optionSet: value =>
+                {
+                    this.Config.EnableUIQualitySmashButton = value;
+                    if (!value)
+                        this.buttonSmashHandler.RemoveButton(ModEntry.SmashType.Quality);
+                    else
+                        this.buttonSmashHandler.AddButton(ModEntry.SmashType.Quality, helper.Content.Load<Texture2D>("assets/buttonQuality.png"), new Rectangle(0, 0, 16, 16));
+                });
+            
             api.RegisterSimpleOption(
                 mod: this.ModManifest,
-                optionName: "Enable egg Color Smash",
+                optionName: "Enable Egg Color Smash",
                 optionDesc: "Enable egg colors to be smashed when Color Smashing with UI buttons or using keybinds",
                 optionGet: () => this.Config.EnableEggColorSmashing,
                 optionSet: value => this.Config.EnableEggColorSmashing = value
             );
 
-            // Single Smash Configs
+            api.SetDefaultIngameOptinValue(this.ModManifest, true);
+            api.RegisterPageLabel(this.ModManifest, "Single Smash", "", "Single Smash");
+            api.RegisterPageLabel(this.ModManifest, "Smash Filters", "", "Smash Filters");
+            api.RegisterPageLabel(this.ModManifest, "Exceptions: Ignore Iridium", "", "Exceptions: Ignore Iridium");
+            api.RegisterPageLabel(this.ModManifest, "Exceptions: Ignore Iridium by Category", "", "Exceptions: Ignore Iridium Category");
+            api.RegisterPageLabel(this.ModManifest, "Color Smash: Ignore Items", "", "Color Smash: Ignore Items");
+            api.RegisterPageLabel(this.ModManifest, "Quality Smash: Ignore Items", "", "Quality Smash: Ignore Items");
+            api.RegisterPageLabel(this.ModManifest, "Both Smash: Ignore Items by Category", "", "Both Smash: Ignore Items by Category");
+
+
+            api.SetDefaultIngameOptinValue(this.ModManifest, true);
+            api.StartNewPage(this.ModManifest, "Single Smash");
+            api.RegisterPageLabel(this.ModManifest, "Back to main page", "", "");
 
             api.RegisterSimpleOption(
                 mod: this.ModManifest,
@@ -227,8 +260,6 @@ namespace QualitySmash
                 optionGet: () => this.Config.EnableSingleItemSmashKeybinds,
                 optionSet: value => this.Config.EnableSingleItemSmashKeybinds = value
             );
-
-            // Code to disable keybind config when above is disabled?
 
             api.RegisterSimpleOption(
                 mod: this.ModManifest, 
@@ -246,45 +277,93 @@ namespace QualitySmash
                 optionSet: (SButton val) => this.Config.QualitySmashKeybind = val
             );
 
-            // Filters
+            api.SetDefaultIngameOptinValue(this.ModManifest, true);
+            api.StartNewPage(this.ModManifest, "Smash Filters");
+            api.RegisterPageLabel(this.ModManifest, "Back to main page", "", "");
 
             api.RegisterSimpleOption(
                 mod: this.ModManifest,
-                optionName: "Do Not Smash Iridium Quality Items",
+                optionName: "Ignore Iridium Quality Items",
                 optionDesc: "If enabled, iridium quality items will not be affected by \"Smash Quality\"",
                 optionGet: () => this.Config.IgnoreIridium,
                 optionSet: value => this.Config.IgnoreIridium = value
             );
-            
+
             api.RegisterSimpleOption(
                 mod: this.ModManifest,
-                optionName: "Do Not Smash Gold Quality Items",
+                optionName: "Ignore Gold Quality Items",
                 optionDesc: "If enabled, gold quality items will not be affected by \"Smash Quality\"",
                 optionGet: () => this.Config.IgnoreGold,
                 optionSet: value => this.Config.IgnoreGold = value
             );
-            
+
             api.RegisterSimpleOption(
                 mod: this.ModManifest,
-                optionName: "Do Not Smash Silver Quality Items",
+                optionName: "Ignore Silver Quality Items",
                 optionDesc: "If enabled, silver quality items will not be affected by \"Smash Quality\"",
                 optionGet: () => this.Config.IgnoreSilver,
                 optionSet: value => this.Config.IgnoreSilver = value
             );
 
-            api.RegisterSimpleOption(
-                mod: this.ModManifest, 
-                optionName: "Ignore Items", 
-                optionDesc: "Items listed here will not be affected when pressing the Quality Smash button. Comma separated. Can be either item IDs or item name (as displayed in game)", 
-                optionGet:() => Helpers.GetNameString(Config.IgnoreItemsQuality, itemNameDictionary), // Parse the config and create comma delimited string of item names
-                optionSet: (string val) => Config.IgnoreItemsQuality = Helpers.GetIdList(val, itemIDDictionary)
-            ); // Convert the text box text (strings or ints) into a List<int> of item IDs
+            api.SetDefaultIngameOptinValue(this.ModManifest, true);
+            api.StartNewPage(this.ModManifest, "Exceptions: Ignore Iridium");
+            api.RegisterPageLabel(this.ModManifest, "Back to main page", "", "");
 
-            api.StartNewPage(this.ModManifest, "Test Page");
+            foreach (KeyValuePair<int, string> item in itemDictionary)
+            {
+                api.RegisterSimpleOption(
+                    mod: this.ModManifest,
+                    optionName: item.Value + " (" + item.Key + ")",
+                    optionDesc: "Smash iridium quality " + item.Value + " even if \"Ignore Iridium Quality Items\" is enabled",
+                    optionGet: () => Config.IgnoreIridiumItemExceptions.Contains(item.Key),
+                    optionSet: value => QSHelpers.SyncConfigSetting(value, item.Key, Config.IgnoreIridiumItemExceptions)
+                );
+            }
 
+            api.SetDefaultIngameOptinValue(this.ModManifest, true);
+            api.StartNewPage(this.ModManifest, "Exceptions: Ignore Iridium by Category");
+            api.RegisterPageLabel(this.ModManifest, "Back to main page", "", "");
 
+            foreach (KeyValuePair<int, string> item in categoryDictionary)
+            {
+                api.RegisterSimpleOption(
+                    mod: this.ModManifest,
+                    optionName: item.Value + " (" + item.Key + ")",
+                    optionDesc: "Smash iridium quality item within category " + item.Value + " even if \"Ignore Iridium Quality Items\" is enabled",
+                    optionGet: () => Config.IgnoreIridiumCategoryExceptions.Contains(item.Key),
+                    optionSet: value => QSHelpers.SyncConfigSetting(value, item.Key, Config.IgnoreIridiumCategoryExceptions)
+                );
+            }
 
+            api.SetDefaultIngameOptinValue(this.ModManifest, true);
+            api.StartNewPage(this.ModManifest, "Color Smash: Ignore Items");
+            api.RegisterPageLabel(this.ModManifest, "Back to main page", "", "");
 
+            foreach (KeyValuePair<int, string> item in coloredItemDictionary)
+            {
+                api.RegisterSimpleOption(
+                    mod: this.ModManifest,
+                    optionName: item.Value + " (" + item.Key + ")",
+                    optionDesc: item.Value + " will be ignored when pressing the Color Smash button",
+                    optionGet: () => Config.IgnoreItemsColor.Contains(item.Key),
+                    optionSet: value => QSHelpers.SyncConfigSetting(value, item.Key, Config.IgnoreItemsColor)
+                );
+            }
+
+            api.SetDefaultIngameOptinValue(this.ModManifest, true);
+            api.StartNewPage(this.ModManifest, "Both Smash: Ignore by Category");
+            api.RegisterPageLabel(this.ModManifest, "Back to main page", "", "");
+
+            foreach (KeyValuePair<int, string> item in categoryDictionary)
+            {
+                api.RegisterSimpleOption(
+                    mod: this.ModManifest,
+                    optionName: item.Value + " (" + item.Key + ")",
+                    optionDesc: item.Value + " will be ignored when pressing the Quality Smash or Color Smash buttons",
+                    optionGet: () => Config.IgnoreItemsCategory.Contains(item.Key),
+                    optionSet: value => QSHelpers.SyncConfigSetting(value, item.Key, Config.IgnoreItemsCategory)
+                );
+            }
         }
 
         //Attempt to smooth out button animations
