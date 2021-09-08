@@ -239,19 +239,20 @@ namespace QualitySmash
                 optionSet: value => this.Config.EnableEggColorSmashing = value
             );
 
-            api.SetDefaultIngameOptinValue(this.ModManifest, true);
-            api.RegisterPageLabel(this.ModManifest, "Single Smash", "", "Single Smash");
-            api.RegisterPageLabel(this.ModManifest, "Smash Filters", "", "Smash Filters");
-            api.RegisterPageLabel(this.ModManifest, "Exceptions: Ignore Iridium", "", "Exceptions: Ignore Iridium");
-            api.RegisterPageLabel(this.ModManifest, "Exceptions: Ignore Iridium by Category", "", "Exceptions: Ignore Iridium Category");
-            api.RegisterPageLabel(this.ModManifest, "Color Smash: Ignore Items", "", "Color Smash: Ignore Items");
-            api.RegisterPageLabel(this.ModManifest, "Quality Smash: Ignore Items", "", "Quality Smash: Ignore Items");
-            api.RegisterPageLabel(this.ModManifest, "Both Smash: Ignore Items by Category", "", "Both Smash: Ignore Items by Category");
+            api.RegisterPageLabel(this.ModManifest, "Single Smash", "Configure an alternative method of color and quality smashing", "Single Smash");
+            api.RegisterPageLabel(this.ModManifest, "Smash Filters", "Basic filters to exclude sets of items from Quality Smash", "Smash Filters");
+            api.RegisterPageLabel(this.ModManifest, "Exceptions: Ignore Iridium", "Exceptions to the \"Ignore Iridium\" smash filter", "Exceptions: Ignore Iridium");
+            api.RegisterPageLabel(this.ModManifest, "Exceptions: Ignore Iridium by Category", "Exceptions by category to the \"Ignore Iridium\" smash filter", "Exceptions: Ignore Iridium by Category");
+            api.RegisterPageLabel(this.ModManifest, "Color Smash: Ignore Items", "Items to ignore when using the Color Smash button", "Color Smash: Ignore Items");
+            api.RegisterPageLabel(this.ModManifest, "Both Smash: Ignore Items", "Items to ignore when using the Color Smash or Quality Smash buttons", "Both Smash: Ignore Items");
+            api.RegisterPageLabel(this.ModManifest, "Both Smash: Ignore by Category", "Categories to ignore when using the Color Smash or Quality Smash buttons", "Both Smash: Ignore by Category");
 
 
             api.SetDefaultIngameOptinValue(this.ModManifest, true);
             api.StartNewPage(this.ModManifest, "Single Smash");
             api.RegisterPageLabel(this.ModManifest, "Back to main page", "", "");
+            api.RegisterParagraph(this.ModManifest, "Single Smash is an alternative method of Color Smash and Quality Smash. It allows you to hold a keyboard key, then click an item in an inventory to smash color or quality.");
+            api.RegisterParagraph(this.ModManifest, "When Color Smashing, the item will be smashed to \"default\" color. When Quality Smashing, the item will be reduced in quality by one step. Iridium -> Gold, Gold -> Silver, Silver -> Basic");
 
             api.RegisterSimpleOption(
                 mod: this.ModManifest,
@@ -280,6 +281,8 @@ namespace QualitySmash
             api.SetDefaultIngameOptinValue(this.ModManifest, true);
             api.StartNewPage(this.ModManifest, "Smash Filters");
             api.RegisterPageLabel(this.ModManifest, "Back to main page", "", "");
+            api.RegisterParagraph(this.ModManifest, "Star qualities selected here will be ignored by Quality Smash UNLESS exceptions are specified in the config. See the Exceptions config pages");
+
 
             api.RegisterSimpleOption(
                 mod: this.ModManifest,
@@ -308,6 +311,7 @@ namespace QualitySmash
             api.SetDefaultIngameOptinValue(this.ModManifest, true);
             api.StartNewPage(this.ModManifest, "Exceptions: Ignore Iridium");
             api.RegisterPageLabel(this.ModManifest, "Back to main page", "", "");
+            api.RegisterParagraph(this.ModManifest, "Iridium quality items selected on this page WILL BE SMASHED by Smash Quality even if \"Ignore Iridium Quality Items\" is enabled");
 
             foreach (KeyValuePair<int, string> item in itemDictionary)
             {
@@ -323,6 +327,7 @@ namespace QualitySmash
             api.SetDefaultIngameOptinValue(this.ModManifest, true);
             api.StartNewPage(this.ModManifest, "Exceptions: Ignore Iridium by Category");
             api.RegisterPageLabel(this.ModManifest, "Back to main page", "", "");
+            api.RegisterParagraph(this.ModManifest, "Iridium quality items that fall under a category selected on this page WILL BE SMASHED by Smash Quality even if \"Ignore Iridium Quality Items\" is enabled");
 
             foreach (KeyValuePair<int, string> item in categoryDictionary)
             {
@@ -338,6 +343,7 @@ namespace QualitySmash
             api.SetDefaultIngameOptinValue(this.ModManifest, true);
             api.StartNewPage(this.ModManifest, "Color Smash: Ignore Items");
             api.RegisterPageLabel(this.ModManifest, "Back to main page", "", "");
+            api.RegisterParagraph(this.ModManifest, "Items selected on this page will be ignored by Smash Colors");
 
             foreach (KeyValuePair<int, string> item in coloredItemDictionary)
             {
@@ -351,17 +357,34 @@ namespace QualitySmash
             }
 
             api.SetDefaultIngameOptinValue(this.ModManifest, true);
-            api.StartNewPage(this.ModManifest, "Both Smash: Ignore by Category");
+            api.StartNewPage(this.ModManifest, "Both Smash: Ignore Items");
             api.RegisterPageLabel(this.ModManifest, "Back to main page", "", "");
+            api.RegisterParagraph(this.ModManifest, "Items selected on this page will be ignored by Smash Colors and Smash Quality");
 
-            foreach (KeyValuePair<int, string> item in categoryDictionary)
+            foreach (KeyValuePair<int, string> item in itemDictionary)
             {
                 api.RegisterSimpleOption(
                     mod: this.ModManifest,
                     optionName: item.Value + " (" + item.Key + ")",
                     optionDesc: item.Value + " will be ignored when pressing the Quality Smash or Color Smash buttons",
-                    optionGet: () => Config.IgnoreItemsCategory.Contains(item.Key),
-                    optionSet: value => QSHelpers.SyncConfigSetting(value, item.Key, Config.IgnoreItemsCategory)
+                    optionGet: () => Config.IgnoreItemsQuality.Contains(item.Key),
+                    optionSet: value => QSHelpers.SyncConfigSetting(value, item.Key, Config.IgnoreItemsQuality)
+                );
+            }
+
+            api.SetDefaultIngameOptinValue(this.ModManifest, true);
+            api.StartNewPage(this.ModManifest, "Both Smash: Ignore by Category");
+            api.RegisterPageLabel(this.ModManifest, "Back to main page", "", "");
+            api.RegisterParagraph(this.ModManifest, "Items under categories selected on this page will be ignored by Smash Colors and Smash Quality");
+
+            foreach (KeyValuePair<int, string> category in categoryDictionary)
+            {
+                api.RegisterSimpleOption(
+                    mod: this.ModManifest,
+                    optionName: category.Value + " (" + category.Key + ")",
+                    optionDesc: "Items in category " + category.Value + " will be ignored when pressing the Quality Smash or Color Smash buttons",
+                    optionGet: () => Config.IgnoreItemsCategory.Contains(category.Key),
+                    optionSet: value => QSHelpers.SyncConfigSetting(value, category.Key, Config.IgnoreItemsCategory)
                 );
             }
         }
