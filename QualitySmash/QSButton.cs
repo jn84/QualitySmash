@@ -18,7 +18,7 @@ namespace QualitySmash
 
         private ClickableTextureComponent clickable;
 
-        private Rectangle bounds;
+        private Rectangle bounds; // hmmmm
 
         public QSButton(ModEntry.SmashType smashType, Texture2D texture, Rectangle buttonClickableArea)
         {
@@ -33,7 +33,6 @@ namespace QualitySmash
 
         public void SetBounds(int screenX, int screenY, int size)
         {
-            // square button => sizex = sizey
             clickable.bounds = new Rectangle(screenX, screenY, size, size);
         }
 

@@ -168,5 +168,23 @@ namespace QualitySmash
                 -26 // Artisan Goods
             };
         }
+
+        internal static void SyncConfigSetting(bool value, int id, List<int> configList)
+        {
+            if (value)
+            {
+                if (configList.Contains(id))
+                    return;
+                else
+                    configList.Add(id);
+            }
+            else
+            {
+                if (configList.Contains(id))
+                    configList.Remove(id);
+            }
+
+        }
     }
+}
 }

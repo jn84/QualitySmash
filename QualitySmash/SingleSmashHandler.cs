@@ -136,6 +136,15 @@ namespace QualitySmash
 
             if (smashType == ModEntry.SmashType.Color)
             {
+                if (item.Category == -5)
+                {
+                    if (item.ParentSheetIndex == 180)
+                        item.ParentSheetIndex = 176;
+
+                    if (item.ParentSheetIndex == 182)
+                        item.ParentSheetIndex = 174;
+                }
+
                 if (item.category == -80 && item is ColoredObject c)
                     c.color.Value = default;
             }

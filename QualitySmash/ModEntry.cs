@@ -320,7 +320,7 @@ namespace QualitySmash
                     optionName: item.Value + " (" + item.Key + ")",
                     optionDesc: "Smash iridium quality " + item.Value + " even if \"Ignore Iridium Quality Items\" is enabled",
                     optionGet: () => Config.IgnoreIridiumItemExceptions.Contains(item.Key),
-                    optionSet: value => QSHelpers.SyncConfigSetting(value, item.Key, Config.IgnoreIridiumItemExceptions)
+                    optionSet: value => ModConfig.SyncConfigSetting(value, item.Key, Config.IgnoreIridiumItemExceptions)
                 );
             }
 
@@ -336,7 +336,7 @@ namespace QualitySmash
                     optionName: item.Value + " (" + item.Key + ")",
                     optionDesc: "Smash iridium quality item within category " + item.Value + " even if \"Ignore Iridium Quality Items\" is enabled",
                     optionGet: () => Config.IgnoreIridiumCategoryExceptions.Contains(item.Key),
-                    optionSet: value => QSHelpers.SyncConfigSetting(value, item.Key, Config.IgnoreIridiumCategoryExceptions)
+                    optionSet: value => ModConfig.SyncConfigSetting(value, item.Key, Config.IgnoreIridiumCategoryExceptions)
                 );
             }
 
@@ -352,7 +352,7 @@ namespace QualitySmash
                     optionName: item.Value + " (" + item.Key + ")",
                     optionDesc: item.Value + " will be ignored when pressing the Color Smash button",
                     optionGet: () => Config.IgnoreItemsColor.Contains(item.Key),
-                    optionSet: value => QSHelpers.SyncConfigSetting(value, item.Key, Config.IgnoreItemsColor)
+                    optionSet: value => ModConfig.SyncConfigSetting(value, item.Key, Config.IgnoreItemsColor)
                 );
             }
 
@@ -368,7 +368,7 @@ namespace QualitySmash
                     optionName: item.Value + " (" + item.Key + ")",
                     optionDesc: item.Value + " will be ignored when pressing the Quality Smash or Color Smash buttons",
                     optionGet: () => Config.IgnoreItemsQuality.Contains(item.Key),
-                    optionSet: value => QSHelpers.SyncConfigSetting(value, item.Key, Config.IgnoreItemsQuality)
+                    optionSet: value => ModConfig.SyncConfigSetting(value, item.Key, Config.IgnoreItemsQuality)
                 );
             }
 
@@ -384,7 +384,7 @@ namespace QualitySmash
                     optionName: category.Value + " (" + category.Key + ")",
                     optionDesc: "Items in category " + category.Value + " will be ignored when pressing the Quality Smash or Color Smash buttons",
                     optionGet: () => Config.IgnoreItemsCategory.Contains(category.Key),
-                    optionSet: value => QSHelpers.SyncConfigSetting(value, category.Key, Config.IgnoreItemsCategory)
+                    optionSet: value => ModConfig.SyncConfigSetting(value, category.Key, Config.IgnoreItemsCategory)
                 );
             }
         }
