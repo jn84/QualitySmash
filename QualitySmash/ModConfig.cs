@@ -187,4 +187,3 @@ namespace QualitySmash
         }
     }
 }
-}
