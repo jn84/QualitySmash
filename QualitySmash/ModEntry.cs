@@ -17,6 +17,7 @@ namespace QualitySmash
         {
             Color,
             Quality,
+            Undo,
             None
         }
 

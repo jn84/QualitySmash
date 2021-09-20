@@ -19,6 +19,15 @@ namespace QualitySmash
         private readonly List<QSButton> qsButtons;
         private readonly ModEntry modEntry;
 
+        private static int ButtonComparer(QSButton a, QSButton b)
+        {
+            if (a.smashType == b.smashType)
+                return 0;
+            if (a.smashType > b.smashType)
+                return 1;
+            return -1;
+        }
+
         public UiButtonHandler(ModEntry modEntry)
         {
             qsButtons = new List<QSButton>();
@@ -37,6 +46,8 @@ namespace QualitySmash
             newButton.UpdateHoverText("");
 
             qsButtons.Add(newButton);
+
+            qsButtons.Sort(ButtonComparer);
         }
 
         public void RemoveButton(ModEntry.SmashType smashType)
