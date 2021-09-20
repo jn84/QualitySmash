@@ -165,6 +165,8 @@ namespace QualitySmash
             {
                 if (item.category == -80 && item is ColoredObject c)
                     return true;
+                if (item.ParentSheetIndex == 180 || item.ParentSheetIndex == 182)
+                    return true;
             }
 
             if (smashType == ModEntry.SmashType.Quality)
