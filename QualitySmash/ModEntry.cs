@@ -25,10 +25,12 @@ namespace QualitySmash
         {
             { SmashType.Color, "hoverTextColor" },
             { SmashType.Quality, "hoverTextQuality" },
+            { SmashType.Undo, "hoverTextUndo"}
         };
 
         private ButtonSmashHandler buttonSmashHandler;
-        private SingleSmashHandler handlerKeybinds;
+        private SingleSmashHandler singleSmashHandler;
+        private UndoHandler undoHandler;
         private ModConfig Config;
 
         // For GenericModConfigMenu
@@ -44,6 +46,7 @@ namespace QualitySmash
 
             var buttonColor = helper.Content.Load<Texture2D>("assets/buttonColor.png");
             var buttonQuality = helper.Content.Load<Texture2D>("assets/buttonQuality.png");
+            var buttonUndo = helper.Content.Load<Texture2D>("assets/buttonUndo.png");
 
             PopulateIdReferences();
 
@@ -55,7 +58,9 @@ namespace QualitySmash
             if (Config.EnableUIQualitySmashButton)
                 this.buttonSmashHandler.AddButton(ModEntry.SmashType.Quality, buttonQuality, new Rectangle(0, 0, 16, 16));
 
-            this.handlerKeybinds = new SingleSmashHandler(this, this.Config, buttonColor, buttonQuality);
+            // Config for enable undo?
+
+            this.singleSmashHandler = new SingleSmashHandler(this, this.Config, buttonColor, buttonQuality);
 
             this.helper = helper;
 
@@ -176,7 +181,7 @@ namespace QualitySmash
             if (Config.EnableUISmashButtons)
                 buttonSmashHandler.TryHover(scaledMousePos.X, scaledMousePos.Y);
             if (Config.EnableSingleItemSmashKeybinds)
-                handlerKeybinds.TryHover(scaledMousePos.X, scaledMousePos.Y);
+                singleSmashHandler.TryHover(scaledMousePos.X, scaledMousePos.Y);
         }
 
 
@@ -432,7 +437,7 @@ namespace QualitySmash
                 if (helper.Input.IsDown(Config.ColorSmashKeybind) ||
                     helper.Input.IsDown(Config.QualitySmashKeybind))
                 {
-                    handlerKeybinds.HandleClick(e);
+                    singleSmashHandler.HandleClick(e);
                     helper.Input.Suppress(SButton.MouseLeft);
                     helper.Input.Suppress(SButton.ControllerA);
                 }
@@ -457,7 +462,7 @@ namespace QualitySmash
 
             if (GetValidKeybindSmashMenu() != null)
                 if (Config.EnableSingleItemSmashKeybinds)
-                    handlerKeybinds.DrawHoverText();
+                    singleSmashHandler.DrawHoverText();
         }
     }
 }

@@ -75,6 +75,7 @@
     <Compile Include="ButtonSmashHandler.cs" />
     <Compile Include="SingleSmashHandler.cs" />
     <Compile Include="UIButtonHandler.cs" />
+    <Compile Include="UndoHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="i18n\default.json" />
@@ -83,6 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="assets\buttonColor.png" />
+    <Content Include="assets\buttonUndo.png" />
     <Content Include="assets\buttonQuality.png" />
     <Content Include="assets\CategoryIDs.txt" />
     <Content Include="assets\ColoredItemIDs.txt" />
