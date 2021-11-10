@@ -28,6 +28,8 @@ namespace QualitySmash
             { SmashType.Undo, "hoverTextUndo"}
         };
 
+        private string assetsPath;
+
         private ButtonSmashHandler buttonSmashHandler;
         private SingleSmashHandler singleSmashHandler;
         private UndoHandler undoHandler;
@@ -42,6 +44,8 @@ namespace QualitySmash
 
         public override void Entry(IModHelper helper)
         {
+            this.assetsPath = Path.Combine(this.Helper.DirectoryPath, "assets");
+            
             this.Config = helper.ReadConfig<ModConfig>();
 
             var buttonColor = helper.Content.Load<Texture2D>("assets/buttonColor.png");
@@ -72,7 +76,7 @@ namespace QualitySmash
         {
             itemDictionary = new Dictionary<int, string>();
 
-            using (StreamReader fileStream = new StreamReader("Mods/QualitySmash/assets/ItemIDs.txt"))
+            using (StreamReader fileStream = new StreamReader(Path.Combine(assetsPath, "ItemIDs.txt")))
             {
                 string line = fileStream.ReadLine();
 
@@ -90,7 +94,7 @@ namespace QualitySmash
 
             coloredItemDictionary = new Dictionary<int, string>();
 
-            using (StreamReader fileStream = new StreamReader("Mods/QualitySmash/assets/ColoredItemIDs.txt"))
+            using (StreamReader fileStream = new StreamReader(Path.Combine(assetsPath, "ColoredItemIDs.txt")))
             {
                 string line = fileStream.ReadLine();
 
@@ -108,7 +112,7 @@ namespace QualitySmash
 
             categoryDictionary = new Dictionary<int, string>();
 
-            using (StreamReader fileStream = new StreamReader("Mods/QualitySmash/assets/CategoryIDs.txt"))
+            using (StreamReader fileStream = new StreamReader(Path.Combine(assetsPath, "CategoryIDs.txt")))
             {
                 string line = fileStream.ReadLine();
 
